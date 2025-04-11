@@ -5,6 +5,7 @@ import SmartSavings from '../savings/SmartSavings';
 import TaxManager from '../budget/TaxManager';
 import BudgetProgress from './BudgetProgress';
 import SimpleFinanceBot from '../ai/SimpleFinanceBot';
+import ExportReport from '../reports/ExportReport';
 
 const Dashboard: React.FC = () => {
   return (
@@ -54,6 +55,16 @@ const Dashboard: React.FC = () => {
             Gamified savings goals and challenges tailored for gig workers
           </Typography>
           <SmartSavings />
+        </Box>
+
+        <Box>
+          <Typography variant="h5" fontWeight="bold" gutterBottom>
+            Financial Reports
+          </Typography>
+          <Typography variant="body2" color="text.secondary" paragraph>
+            Export your financial data for accounting and analysis
+          </Typography>
+          <ExportReport />
         </Box>
       </Box>
 
