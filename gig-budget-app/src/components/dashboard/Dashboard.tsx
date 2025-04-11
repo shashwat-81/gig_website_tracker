@@ -4,6 +4,7 @@ import IncomeForecast from './IncomeForecast';
 import SmartSavings from '../savings/SmartSavings';
 import TaxManager from '../budget/TaxManager';
 import BudgetProgress from './BudgetProgress';
+import SimpleFinanceBot from '../ai/SimpleFinanceBot';
 
 const Dashboard: React.FC = () => {
   return (
@@ -54,6 +55,11 @@ const Dashboard: React.FC = () => {
           </Typography>
           <SmartSavings />
         </Box>
+      </Box>
+
+      {/* Finance Bot positioned in the bottom right corner */}
+      <Box sx={{ position: 'fixed', bottom: 20, right: 20, zIndex: 1000 }}>
+        <SimpleFinanceBot />
       </Box>
     </Container>
   );

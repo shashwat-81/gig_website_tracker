@@ -1,0 +1,139 @@
+{
+  "intentBased": {
+    "greetings": {
+      "patterns": ["hi", "hello", "hey", "good morning", "good afternoon", "good evening"],
+      "responses": [
+        "Hello! I'm your finance assistant. How can I help you today?",
+        "Hi there! I'm here to help with your financial questions.",
+        "Greetings! How can I assist you with your finances today?"
+      ]
+    },
+    "goalPlanning": {
+      "patterns": [
+        "I want to buy *",
+        "how can I afford *",
+        "how to save for *",
+        "I need to buy *",
+        "plan to buy *",
+        "saving plan for *",
+        "goal of buying *",
+        "can I buy *",
+        "purchase * in * months",
+        "how do I buy * with my income",
+        "I want to purchase *"
+      ],
+      "responses": [
+        "Yes, you can! Start by saving from different areas: cut ₹1000 from food expenses, ₹2222 from bus or transport, ₹600 from subscriptions, and ₹500 from weekend outings. That's ₹4322/month saved!",
+        "Absolutely! Here's a breakdown: save ₹1200 by cooking at home, ₹2000 by sharing rides, ₹800 from online shopping, and ₹1000 from skipping two weekend parties. That's ₹5000 right there!",
+        "Totally doable! Reduce ₹1500 on snacks and dining, ₹1800 by avoiding cab rides, ₹1000 by pausing OTT subscriptions, and ₹700 from mobile recharges. Save smart!",
+        "Sure thing! Let's plan it: cut ₹900 from food, ₹2100 from unnecessary travel, ₹1000 from shopping, and ₹600 from extra data packs. Set this aside monthly for your goal.",
+        "Definitely! Save ₹1100 from groceries by being mindful, ₹1900 from transport using monthly passes, ₹500 by cancelling unused subscriptions, and ₹1000 from entertainment. Small changes, big results!"
+      ]
+    },
+    "budgeting": {
+      "patterns": ["budget", "budgeting", "how to budget", "create budget", "make budget"],
+      "responses": [
+        "To create a budget: 1) Track your income 2) List your expenses 3) Set financial goals 4) Monitor spending 5) Adjust as needed.",
+        "Budgeting helps you control your money. Start by tracking your monthly income and expenses.",
+        "A good budget includes: fixed expenses, variable expenses, savings, and emergency funds."
+      ]
+    },
+    "savings": {
+      "patterns": ["save money", "saving", "how to save", "savings tips"],
+      "responses": [
+        "To save money: 1) Set clear goals 2) Create automatic transfers 3) Cut unnecessary expenses 4) Track your progress.",
+        "Try the 50/30/20 rule: 50% needs, 30% wants, 20% savings.",
+        "Start small and increase your savings gradually. Even 10% of your income can make a big difference."
+      ]
+    },
+    "investing": {
+      "patterns": ["invest", "investing", "how to invest", "investment tips"],
+      "responses": [
+        "Basic investment tips: 1) Start early 2) Diversify 3) Research 4) Think long-term 5) Don't invest what you can't afford to lose.",
+        "Consider index funds for beginners. They offer diversification and lower fees.",
+        "Remember: higher returns usually mean higher risk. Balance your portfolio according to your risk tolerance."
+      ]
+    },
+    "debt": {
+      "patterns": ["debt", "pay off debt", "manage debt", "credit card debt"],
+      "responses": [
+        "To manage debt: 1) List all debts 2) Prioritize high-interest debt 3) Make minimum payments 4) Create a repayment plan.",
+        "Consider the snowball method: pay smallest debts first, or avalanche method: pay highest interest first.",
+        "Avoid taking on new debt while paying off existing debt. Create a strict budget to help with payments."
+      ]
+    },
+    "credit": {
+      "patterns": ["credit score", "credit", "improve credit", "credit report"],
+      "responses": [
+        "To improve credit: 1) Pay bills on time 2) Keep credit utilization low 3) Don't close old accounts 4) Check credit reports regularly.",
+        "Your credit score is based on payment history, credit utilization, credit age, credit mix, and new credit.",
+        "Aim to keep credit card balances below 30% of your limit for better credit scores."
+      ]
+    },
+    "retirement": {
+      "patterns": ["retirement", "retirement planning", "retirement savings", "401k"],
+      "responses": [
+        "Start retirement planning early: 1) Contribute to retirement accounts 2) Take advantage of employer matching 3) Increase contributions over time.",
+        "Aim to save 15% of your income for retirement, including employer contributions.",
+        "Consider both traditional and Roth retirement accounts for tax diversification."
+      ]
+    },
+    "emergency": {
+      "patterns": ["emergency fund", "emergency savings", "rainy day fund"],
+      "responses": [
+        "An emergency fund should cover 3-6 months of living expenses. Start small and build it gradually.",
+        "Keep emergency funds in a separate, easily accessible account.",
+        "Emergency funds help you avoid debt when unexpected expenses arise."
+      ]
+    },
+    "taxes": {
+      "patterns": ["taxes", "tax planning", "tax deductions", "tax savings"],
+      "responses": [
+        "Basic tax tips: 1) Keep good records 2) Know your deductions 3) Contribute to tax-advantaged accounts 4) File on time.",
+        "Consider tax-loss harvesting and maximizing retirement contributions to reduce taxable income.",
+        "Keep track of deductible expenses like charitable donations, medical expenses, and business expenses."
+      ]
+    },
+    "default": {
+      "responses": [
+        "I'm not sure about that. Try asking about budgeting, saving money, investing, debt, credit, retirement, or taxes.",
+        "Could you rephrase that? I can help with financial planning, budgeting, and investment advice.",
+        "I'm still learning! Ask me about common financial topics like budgeting, saving, or investing."
+      ]
+    }
+  },
+  "scenarioBased": [
+    {
+      "input": "My monthly income is ₹10,000 and I want to buy an iPhone worth ₹80,000. How much should I save and how?",
+      "output": "To buy an iPhone worth ₹80,000, you need to save ₹4,000/month for 20 months. Here's how: cut down eating out from ₹2,000 to ₹1,000, share rent to save ₹1,000, skip OTT subscriptions to save ₹500, and reduce parties to save ₹500. Activate 'Smart Save Suggestions' to track and optimize your spending."
+    },
+    {
+      "input": "I earn ₹12,000/month. I want to buy a laptop worth ₹60,000 in 10 months. Can I do that?",
+      "output": "Yes, you'll need to save ₹6,000/month. That's 50% of your income. Save by cooking at home (₹1,000 saved), sharing rent (₹1,500), skipping weekend outings (₹1,000), cutting impulse shopping (₹1,000). Enable our 'Goal Planner' to track your progress with reminders."
+    },
+    {
+      "input": "I earn ₹15,000 monthly. I want a bike worth ₹90,000 in 15 months. What's my saving plan?",
+      "output": "You should save ₹6,000/month. You can do this by: switching to shared accommodation (save ₹2,000), cooking instead of eating out (save ₹1,000), avoiding unnecessary subscriptions (save ₹500), and controlling shopping (save ₹500). Use 'Smart Goals' to break this into weekly targets."
+    },
+    {
+      "input": "If I earn ₹8,000 and want a phone worth ₹24,000, how long will it take if I save 30% every month?",
+      "output": "30% of ₹8,000 is ₹2,400/month. So in 10 months, you'll save ₹24,000. Save more by skipping movie outings, preparing home snacks, and using shared transport. Our 'Micro-Save' tool helps automate this easily without affecting your lifestyle."
+    },
+    {
+      "input": "My income is ₹18,000/month and I want to buy a PlayStation for ₹45,000. What's a realistic savings plan?",
+      "output": "If you save ₹5,000/month, you'll reach your goal in 9 months. Tips: cancel one OTT platform (save ₹500), cut café visits (₹1,000), reduce online shopping (₹1,500), and find a cheaper data plan (₹500). Enable 'Budget Insights' for more personalized expense tracking."
+    },
+    {
+      "input": "I'm a student with ₹6,000 pocket money monthly. I want to buy a smartwatch worth ₹12,000. Can I afford it?",
+      "output": "Yes! Save ₹2,000/month and you'll get there in 6 months. Cut back on snacks (₹500), limit online shopping (₹1,000), and save from your mobile data recharges. Use our 'Student Saver Mode' to make this easier!"
+    },
+    {
+      "input": "I work in a hotel earning ₹14,000/month. I want to buy a scooter worth ₹56,000. What should I do?",
+      "output": "Saving ₹4,000/month will get you there in 14 months. Tips: cook dinner instead of buying (₹1,000 saved), share a room (₹1,500), walk for short trips (₹500), and reduce mobile recharge cost (₹500). Activate 'Smart Save Tips' to get daily suggestions!"
+    },
+    {
+      "input": "My child wants a cycle worth ₹10,000 and I earn ₹9,000/month. How can I save for it in 5 months?",
+      "output": "You'll need to save ₹2,000/month. Try reducing weekend outings (₹500), avoid impulse spending (₹500), cook instead of ordering food (₹500), and keep track of daily spending. Use our 'Family Goals' feature to manage such small but important dreams."
+    }
+  ]
+} 

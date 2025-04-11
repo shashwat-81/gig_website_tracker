@@ -23,6 +23,7 @@ import Achievements from './components/gamification/Achievements';
 import Challenges from './components/gamification/Challenges';
 // Import the AI Insights Dashboard
 import AIInsightsDashboard from './components/ai/AIInsightsDashboard';
+import InteractiveFinancialInsights from './components/ai/InteractiveFinancialInsights';
 // Import Login Page
 import LoginPage from './pages/LoginPage';
 
@@ -86,6 +87,7 @@ const App: React.FC = () => {
                   <Route path="/achievements" element={<Achievements />} />
                   <Route path="/challenges" element={<Challenges />} />
                   <Route path="/ai-insights" element={<AIInsightsDashboard />} />
+                  <Route path="/interactive-insights" element={<InteractiveFinancialInsights />} />
                 </Route>
                 
                 {/* Redirect all other routes to login */}
