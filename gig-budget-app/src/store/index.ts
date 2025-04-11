@@ -8,6 +8,17 @@ import savingsReducer from './slices/savingsSlice';
 import predictionReducer from './slices/predictionSlice';
 import gamificationReducer from './slices/gamificationSlice';
 import taxReducer from './slices/taxSlice';
+// Import state types
+import {
+  UserState,
+  IncomeState,
+  ExpenseState,
+  BudgetState,
+  SavingsState,
+  PredictionState,
+  GamificationState,
+  TaxState
+} from './types';
 
 export const store = configureStore({
   reducer: {
@@ -22,7 +33,18 @@ export const store = configureStore({
   },
 });
 
-export type RootState = ReturnType<typeof store.getState>;
+// Define RootState with explicit types for each slice
+export interface RootState {
+  user: UserState;
+  income: IncomeState;
+  expense: ExpenseState;
+  budget: BudgetState;
+  savings: SavingsState;
+  prediction: PredictionState;
+  gamification: GamificationState;
+  tax: TaxState;
+}
+
 export type AppDispatch = typeof store.dispatch;
 
 // Custom hooks for better typing

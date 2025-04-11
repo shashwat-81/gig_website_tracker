@@ -34,7 +34,8 @@ import {
   Settings as SettingsIcon,
   Close as CloseIcon,
   Menu as MenuIcon,
-  Person as PersonIcon
+  Person as PersonIcon,
+  Psychology as AIIcon
 } from '@mui/icons-material';
 import HamburgerMenu from './HamburgerMenu';
 
@@ -46,6 +47,7 @@ const navItems = [
   { text: 'Expense Tracker', path: '/expenses', icon: <ExpenseIcon /> },
   { text: 'Budget Planner', path: '/budget', icon: <BudgetIcon /> },
   { text: 'Savings Goals', path: '/savings', icon: <SavingsIcon /> },
+  { text: 'AI Insights', path: '/ai-insights', icon: <AIIcon /> },
   { text: 'Achievements', path: '/achievements', icon: <AchievementsIcon /> },
   { text: 'Challenges', path: '/challenges', icon: <ChallengesIcon /> },
   { text: 'Tax Manager', path: '/tax', icon: <TaxIcon /> },

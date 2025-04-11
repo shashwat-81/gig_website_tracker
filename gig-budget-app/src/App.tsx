@@ -19,6 +19,8 @@ import ExpenseTracker from './components/expense/ExpenseTracker';
 import TaxManager from './components/tax/TaxManager';
 import Achievements from './components/gamification/Achievements';
 import Challenges from './components/gamification/Challenges';
+// Import the AI Insights Dashboard
+import AIInsightsDashboard from './components/ai/AIInsightsDashboard';
 
 const App: React.FC = () => {
   return (
@@ -39,6 +41,8 @@ const App: React.FC = () => {
                 <Route path="/tax" element={<TaxManager />} />
                 <Route path="/achievements" element={<Achievements />} />
                 <Route path="/challenges" element={<Challenges />} />
+                {/* Add AI Insights Dashboard route */}
+                <Route path="/ai-insights" element={<AIInsightsDashboard />} />
               </Route>
             </Routes>
           </Router>
