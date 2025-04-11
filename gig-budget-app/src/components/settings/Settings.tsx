@@ -21,7 +21,9 @@ import {
   ListItemText,
   ListSubheader,
   Avatar,
-  Chip
+  Chip,
+  IconButton,
+  Badge
 } from '@mui/material';
 import {
   Notifications,
@@ -33,416 +35,382 @@ import {
   ColorLens,
   Person,
   DataUsage,
-  SyncAlt
+  SyncAlt,
+  DarkMode,
+  LightMode,
+  Storage,
+  HelpOutline,
+  PhotoCamera,
+  Edit,
+  CheckCircle,
+  Save
 } from '@mui/icons-material';
 import { useTheme } from '../../context/ThemeContext';
 
 const Settings: React.FC = () => {
-  const { themeMode, toggleTheme } = useTheme();
-  
-  // Currency and locale settings
-  const [currency, setCurrency] = useState('₹');
-  const [locale, setLocale] = useState('en-IN');
-  const [dateFormat, setDateFormat] = useState('DD/MM/YYYY');
-  
-  // Notification settings
-  const [notifyLowBalance, setNotifyLowBalance] = useState(true);
-  const [notifyBillsDue, setNotifyBillsDue] = useState(true);
-  const [notifySavingsGoals, setNotifySavingsGoals] = useState(true);
-  const [notifyTaxDates, setNotifyTaxDates] = useState(true);
-  
-  // Privacy and security
-  const [requirePin, setRequirePin] = useState(false);
-  const [backupFrequency, setBackupFrequency] = useState('weekly');
-  
-  // Display settings
-  const [chartStyle, setChartStyle] = useState('bars');
-  
-  // Advanced preferences
-  const [lowBalanceThreshold, setLowBalanceThreshold] = useState('5000');
-  const [dataRetentionPeriod, setDataRetentionPeriod] = useState('12');
+  const { darkMode, toggleDarkMode } = useTheme();
   
   // Profile information
   const [name, setName] = useState('Raj Kumar');
   const [email, setEmail] = useState('raj.kumar@example.com');
   const [occupation, setOccupation] = useState('Freelance Developer');
+  const [phone, setPhone] = useState('+91 9876543210');
+  const [bio, setBio] = useState('Experienced freelance developer specializing in web and mobile applications. Based in Bangalore.');
+  const [profilePicture, setProfilePicture] = useState<string | null>(null);
+  const [editingProfile, setEditingProfile] = useState(false);
+  
+  // Currency and locale settings
+  const [currency, setCurrency] = React.useState('₹');
+  const [locale, setLocale] = React.useState('en-IN');
+  const [dateFormat, setDateFormat] = React.useState('DD/MM/YYYY');
+  
+  // Notification settings
+  const [notifyLowBalance, setNotifyLowBalance] = React.useState(true);
+  const [notifyBillsDue, setNotifyBillsDue] = React.useState(true);
+  const [notifySavingsGoals, setNotifySavingsGoals] = React.useState(true);
+  const [notifyTaxDates, setNotifyTaxDates] = React.useState(true);
+  
+  // Privacy and security
+  const [requirePin, setRequirePin] = React.useState(false);
+  const [backupFrequency, setBackupFrequency] = React.useState('weekly');
+  
+  // Display settings
+  const [chartStyle, setChartStyle] = React.useState('bars');
+  
+  // Advanced preferences
+  const [lowBalanceThreshold, setLowBalanceThreshold] = React.useState('5000');
+  const [dataRetentionPeriod, setDataRetentionPeriod] = React.useState('12');
 
   const handleSaveSettings = () => {
     // In a real app, this would save to localStorage, database or API
     alert('Settings saved successfully!');
   };
 
+  const handleProfilePictureChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files && event.target.files[0]) {
+      const fileReader = new FileReader();
+      fileReader.onload = (e) => {
+        if (e.target?.result) {
+          setProfilePicture(e.target.result.toString());
+        }
+      };
+      fileReader.readAsDataURL(event.target.files[0]);
+    }
+  };
+
+  const handleSaveProfile = () => {
+    setEditingProfile(false);
+    // In a real app, save profile data to backend
+    alert('Profile updated successfully!');
+  };
+
   return (
-    <Box>
-      <Typography variant="h4" component="h1" fontWeight="bold" sx={{ mb: 4 }}>
-        Settings
-      </Typography>
-
-      <Stack spacing={3}>
-        {/* Profile Section */}
-        <Card>
-          <CardContent>
-            <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-              <Person color="primary" sx={{ mr: 1 }} />
-              <Typography variant="h6" fontWeight="bold">
-                Profile Information
-              </Typography>
-            </Box>
-            <Stack direction={{ xs: 'column', md: 'row' }} spacing={3}>
-              <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minWidth: { md: '200px' } }}>
-                <Avatar
-                  sx={{ 
-                    width: 100, 
-                    height: 100, 
-                    bgcolor: 'primary.main',
-                    fontSize: '2.5rem'
-                  }}
-                >
-                  {name.charAt(0)}
-                </Avatar>
-              </Box>
-              <Stack spacing={2} sx={{ flex: 1 }}>
-                <TextField
-                  label="Full Name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  fullWidth
-                />
-                <TextField
-                  label="Email Address"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  fullWidth
-                  type="email"
-                />
-                <TextField
-                  label="Occupation"
-                  value={occupation}
-                  onChange={(e) => setOccupation(e.target.value)}
-                  fullWidth
-                />
-                <Button variant="contained" color="primary">
-                  Update Profile
-                </Button>
-              </Stack>
-            </Stack>
-          </CardContent>
-        </Card>
-
-        {/* Main Settings Section */}
-        <Stack direction={{ xs: 'column', md: 'row' }} spacing={3}>
-          {/* Currency and Locale Settings */}
-          <Card sx={{ flex: 1 }}>
-            <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-                <CurrencyRupee color="primary" sx={{ mr: 1 }} />
-                <Typography variant="h6" fontWeight="bold">
-                  Currency & Regional Settings
-                </Typography>
-              </Box>
+    <Card sx={{ height: '100%', overflow: 'auto' }}>
+      <CardContent>
+        <Typography variant="h6" fontWeight="bold" gutterBottom>
+          App Settings
+        </Typography>
+        
+        <Stack spacing={3} sx={{ mt: 2 }}>
+          {/* Profile Section */}
+          <Box>
+            <Typography variant="subtitle2" gutterBottom>
+              Profile
+            </Typography>
+            <Card variant="outlined" sx={{ p: 2 }}>
               <Stack spacing={2}>
-                <FormControl fullWidth>
-                  <InputLabel>Currency Symbol</InputLabel>
-                  <Select
-                    value={currency}
-                    label="Currency Symbol"
-                    onChange={(e) => setCurrency(e.target.value)}
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <Box sx={{ display: 'flex', gap: 3 }}>
+                    <Badge
+                      overlap="circular"
+                      anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                      badgeContent={
+                        <label htmlFor="profile-picture-upload">
+                          <input
+                            accept="image/*"
+                            id="profile-picture-upload"
+                            type="file"
+                            style={{ display: 'none' }}
+                            onChange={handleProfilePictureChange}
+                          />
+                          <IconButton 
+                            component="span" 
+                            sx={{ 
+                              bgcolor: 'primary.main', 
+                              color: 'white',
+                              '&:hover': { bgcolor: 'primary.dark' } 
+                            }}
+                            size="small"
+                          >
+                            <PhotoCamera fontSize="small" />
+                          </IconButton>
+                        </label>
+                      }
+                    >
+                      <Avatar 
+                        src={profilePicture || undefined} 
+                        alt={name}
+                        sx={{ width: 80, height: 80 }}
+                      >
+                        {!profilePicture && name.split(' ').map(n => n[0]).join('')}
+                      </Avatar>
+                    </Badge>
+                    <Box>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+                        {!editingProfile ? (
+                          <Typography variant="h6">{name}</Typography>
+                        ) : (
+                          <TextField
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                            variant="outlined"
+                            size="small"
+                            fullWidth
+                            label="Name"
+                          />
+                        )}
+                        <Chip 
+                          label="Verified" 
+                          size="small" 
+                          color="success" 
+                          icon={<CheckCircle fontSize="small" />} 
+                        />
+                      </Box>
+                      {!editingProfile ? (
+                        <>
+                          <Typography variant="body2" color="text.secondary">{email}</Typography>
+                          <Typography variant="body2" color="text.secondary">{phone}</Typography>
+                          <Typography variant="body2">{occupation}</Typography>
+                        </>
+                      ) : (
+                        <Stack spacing={2} sx={{ mt: 1 }}>
+                          <TextField
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            variant="outlined"
+                            size="small"
+                            fullWidth
+                            label="Email"
+                            type="email"
+                          />
+                          <TextField
+                            value={phone}
+                            onChange={(e) => setPhone(e.target.value)}
+                            variant="outlined"
+                            size="small"
+                            fullWidth
+                            label="Phone"
+                          />
+                          <TextField
+                            value={occupation}
+                            onChange={(e) => setOccupation(e.target.value)}
+                            variant="outlined"
+                            size="small"
+                            fullWidth
+                            label="Occupation"
+                          />
+                        </Stack>
+                      )}
+                    </Box>
+                  </Box>
+                  <Button
+                    startIcon={editingProfile ? <Save /> : <Edit />}
+                    variant="outlined"
+                    size="small"
+                    onClick={editingProfile ? handleSaveProfile : () => setEditingProfile(true)}
                   >
-                    <MenuItem value="₹">₹ (Indian Rupee)</MenuItem>
-                    <MenuItem value="$">$ (US Dollar)</MenuItem>
-                    <MenuItem value="€">€ (Euro)</MenuItem>
-                    <MenuItem value="£">£ (British Pound)</MenuItem>
-                  </Select>
-                </FormControl>
+                    {editingProfile ? 'Save' : 'Edit'}
+                  </Button>
+                </Box>
                 
-                <FormControl fullWidth>
-                  <InputLabel>Language & Locale</InputLabel>
+                {!editingProfile ? (
+                  <Typography variant="body2" sx={{ mt: 2 }}>
+                    {bio}
+                  </Typography>
+                ) : (
+                  <TextField
+                    value={bio}
+                    onChange={(e) => setBio(e.target.value)}
+                    variant="outlined"
+                    size="small"
+                    fullWidth
+                    label="Bio"
+                    multiline
+                    rows={3}
+                  />
+                )}
+
+                <Divider />
+                
+                <Box>
+                  <Typography variant="subtitle2" gutterBottom>
+                    Account Status
+                  </Typography>
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                    <Chip label="Free Plan" color="primary" />
+                    <Chip label="2 months active" variant="outlined" />
+                    <Chip label="Storage: 15%" size="small" />
+                  </Box>
+                </Box>
+              </Stack>
+            </Card>
+          </Box>
+          
+          <Divider />
+          
+          {/* Theme Settings */}
+          <Box>
+            <Typography variant="subtitle2" gutterBottom>
+              Appearance
+            </Typography>
+            <Card variant="outlined" sx={{ p: 2 }}>
+              <Stack spacing={2}>
+                <FormControlLabel
+                  control={
+                    <Switch 
+                      checked={darkMode} 
+                      onChange={toggleDarkMode}
+                      color="primary" 
+                    />
+                  }
+                  label={
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      {darkMode ? <DarkMode fontSize="small" /> : <LightMode fontSize="small" />}
+                      <Typography>{darkMode ? 'Dark Mode' : 'Light Mode'}</Typography>
+                    </Box>
+                  }
+                />
+                <Typography variant="caption" color="text.secondary">
+                  {darkMode 
+                    ? 'Dark mode reduces eye strain in low-light environments and saves battery on OLED screens.' 
+                    : 'Light mode provides better readability in well-lit environments.'}
+                </Typography>
+              </Stack>
+            </Card>
+          </Box>
+          
+          <Divider />
+          
+          {/* Notification Settings */}
+          <Box>
+            <Typography variant="subtitle2" gutterBottom>
+              Notifications
+            </Typography>
+            <Card variant="outlined" sx={{ p: 2 }}>
+              <Stack spacing={2}>
+                <FormControlLabel
+                  control={<Switch defaultChecked color="primary" />}
+                  label={
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Notifications fontSize="small" />
+                      <Typography>Tax Due Reminders</Typography>
+                    </Box>
+                  }
+                />
+                <FormControlLabel
+                  control={<Switch defaultChecked color="primary" />}
+                  label={
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Notifications fontSize="small" />
+                      <Typography>Budget Alerts</Typography>
+                    </Box>
+                  }
+                />
+                <FormControlLabel
+                  control={<Switch color="primary" />}
+                  label={
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Notifications fontSize="small" />
+                      <Typography>Savings Goal Milestones</Typography>
+                    </Box>
+                  }
+                />
+              </Stack>
+            </Card>
+          </Box>
+          
+          <Divider />
+          
+          {/* Language & Region Settings */}
+          <Box>
+            <Typography variant="subtitle2" gutterBottom>
+              Language & Region
+            </Typography>
+            <Card variant="outlined" sx={{ p: 2 }}>
+              <Stack spacing={2}>
+                <FormControl fullWidth size="small">
+                  <InputLabel>Language</InputLabel>
                   <Select
-                    value={locale}
-                    label="Language & Locale"
-                    onChange={(e) => setLocale(e.target.value)}
+                    value="en-IN"
+                    label="Language"
+                    startAdornment={<Language fontSize="small" sx={{ mr: 1 }} />}
                   >
                     <MenuItem value="en-IN">English (India)</MenuItem>
                     <MenuItem value="hi-IN">Hindi</MenuItem>
-                    <MenuItem value="en-US">English (US)</MenuItem>
-                    <MenuItem value="en-GB">English (UK)</MenuItem>
+                    <MenuItem value="ta-IN">Tamil</MenuItem>
+                    <MenuItem value="te-IN">Telugu</MenuItem>
+                    <MenuItem value="kn-IN">Kannada</MenuItem>
                   </Select>
                 </FormControl>
-                
-                <FormControl fullWidth>
-                  <InputLabel>Date Format</InputLabel>
+                <FormControl fullWidth size="small">
+                  <InputLabel>Currency Format</InputLabel>
                   <Select
-                    value={dateFormat}
-                    label="Date Format"
-                    onChange={(e) => setDateFormat(e.target.value)}
+                    value="INR"
+                    label="Currency Format"
                   >
-                    <MenuItem value="DD/MM/YYYY">DD/MM/YYYY (31/12/2023)</MenuItem>
-                    <MenuItem value="MM/DD/YYYY">MM/DD/YYYY (12/31/2023)</MenuItem>
-                    <MenuItem value="YYYY-MM-DD">YYYY-MM-DD (2023-12-31)</MenuItem>
+                    <MenuItem value="INR">Indian Rupee (₹)</MenuItem>
+                    <MenuItem value="USD">US Dollar ($)</MenuItem>
+                    <MenuItem value="EUR">Euro (€)</MenuItem>
                   </Select>
                 </FormControl>
-
-                <Alert severity="info">
-                  These settings will affect how financial data is displayed throughout the app.
-                </Alert>
               </Stack>
-            </CardContent>
-          </Card>
-
-          {/* Notification Settings */}
-          <Card sx={{ flex: 1 }}>
-            <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-                <Notifications color="primary" sx={{ mr: 1 }} />
-                <Typography variant="h6" fontWeight="bold">
-                  Notification Preferences
-                </Typography>
-              </Box>
-              <List disablePadding>
-                <ListItem divider>
-                  <ListItemText 
-                    primary="Low Balance Alerts" 
-                    secondary="Get notified when your balance drops below a threshold"
-                  />
-                  <Switch 
-                    checked={notifyLowBalance}
-                    onChange={(e) => setNotifyLowBalance(e.target.checked)}
-                    color="primary"
-                  />
-                </ListItem>
-                <ListItem divider>
-                  <ListItemText 
-                    primary="Bill Payment Reminders" 
-                    secondary="Get notified when bills are due"
-                  />
-                  <Switch 
-                    checked={notifyBillsDue}
-                    onChange={(e) => setNotifyBillsDue(e.target.checked)}
-                    color="primary"
-                  />
-                </ListItem>
-                <ListItem divider>
-                  <ListItemText 
-                    primary="Savings Goal Updates" 
-                    secondary="Get notified about progress towards your savings goals"
-                  />
-                  <Switch 
-                    checked={notifySavingsGoals}
-                    onChange={(e) => setNotifySavingsGoals(e.target.checked)}
-                    color="primary"
-                  />
-                </ListItem>
-                <ListItem>
-                  <ListItemText 
-                    primary="Tax Date Reminders" 
-                    secondary="Get notified about upcoming GST filing and tax payment dates"
-                  />
-                  <Switch 
-                    checked={notifyTaxDates}
-                    onChange={(e) => setNotifyTaxDates(e.target.checked)}
-                    color="primary"
-                  />
-                </ListItem>
-              </List>
-              {notifyLowBalance && (
-                <Box sx={{ mt: 2 }}>
-                  <TextField
-                    label="Low Balance Threshold (₹)"
-                    type="number"
-                    value={lowBalanceThreshold}
-                    onChange={(e) => setLowBalanceThreshold(e.target.value)}
-                    fullWidth
-                    helperText="You'll be notified when your account balance falls below this amount"
-                  />
+            </Card>
+          </Box>
+          
+          <Divider />
+          
+          {/* Data Management */}
+          <Box>
+            <Typography variant="subtitle2" gutterBottom>
+              Data & Privacy
+            </Typography>
+            <Card variant="outlined" sx={{ p: 2 }}>
+              <Stack spacing={2}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Storage fontSize="small" />
+                    <Typography>Clear Local Data</Typography>
+                  </Box>
+                  <Button size="small" variant="outlined" color="warning">
+                    Clear
+                  </Button>
                 </Box>
-              )}
-            </CardContent>
-          </Card>
-        </Stack>
-
-        <Stack direction={{ xs: 'column', md: 'row' }} spacing={3}>
-          {/* Privacy and Security */}
-          <Card sx={{ flex: 1 }}>
-            <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-                <Security color="primary" sx={{ mr: 1 }} />
-                <Typography variant="h6" fontWeight="bold">
-                  Privacy & Security
-                </Typography>
-              </Box>
-              <List disablePadding>
-                <ListItem divider>
-                  <ListItemText 
-                    primary="PIN Protection" 
-                    secondary="Require a PIN to access the app"
-                  />
-                  <Switch 
-                    checked={requirePin}
-                    onChange={(e) => setRequirePin(e.target.checked)}
-                    color="primary"
-                  />
-                </ListItem>
-                <ListItem divider>
-                  <ListItemText 
-                    primary="Data Backup" 
-                    secondary="Configure automatic data backup frequency"
-                  />
-                  <FormControl sx={{ minWidth: 120 }}>
-                    <Select
-                      value={backupFrequency}
-                      size="small"
-                      onChange={(e) => setBackupFrequency(e.target.value)}
-                    >
-                      <MenuItem value="daily">Daily</MenuItem>
-                      <MenuItem value="weekly">Weekly</MenuItem>
-                      <MenuItem value="monthly">Monthly</MenuItem>
-                      <MenuItem value="never">Never</MenuItem>
-                    </Select>
-                  </FormControl>
-                </ListItem>
-                <ListItem>
-                  <ListItemText 
-                    primary="Data Retention" 
-                    secondary="How long to keep financial records"
-                  />
-                  <FormControl sx={{ minWidth: 120 }}>
-                    <Select
-                      value={dataRetentionPeriod}
-                      size="small"
-                      onChange={(e) => setDataRetentionPeriod(e.target.value)}
-                    >
-                      <MenuItem value="3">3 months</MenuItem>
-                      <MenuItem value="6">6 months</MenuItem>
-                      <MenuItem value="12">12 months</MenuItem>
-                      <MenuItem value="forever">Forever</MenuItem>
-                    </Select>
-                  </FormControl>
-                </ListItem>
-              </List>
-              <Box sx={{ mt: 2 }}>
-                <Alert severity="warning">
-                  We recommend keeping financial records for at least a full financial year for tax purposes.
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Security fontSize="small" />
+                    <Typography>Export All Data</Typography>
+                  </Box>
+                  <Button size="small" variant="outlined">
+                    Export
+                  </Button>
+                </Box>
+                <Alert severity="info" icon={<HelpOutline />} sx={{ mt: 1 }}>
+                  <Typography variant="caption">
+                    Your data is stored locally on your device. Clearing data will reset all your budget settings and history.
+                  </Typography>
                 </Alert>
-              </Box>
-            </CardContent>
-          </Card>
-
-          {/* Display Settings */}
-          <Card sx={{ flex: 1 }}>
-            <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-                <Visibility color="primary" sx={{ mr: 1 }} />
-                <Typography variant="h6" fontWeight="bold">
-                  Display Settings
-                </Typography>
-              </Box>
-              <List disablePadding>
-                <ListItem divider>
-                  <ListItemText 
-                    primary="Theme Mode" 
-                    secondary="Choose light or dark theme"
-                  />
-                  <Switch
-                    checked={themeMode === 'dark'}
-                    onChange={toggleTheme}
-                    color="primary"
-                  />
-                </ListItem>
-                <ListItem>
-                  <ListItemText 
-                    primary="Chart Style" 
-                    secondary="Preferred style for financial charts"
-                  />
-                  <FormControl sx={{ minWidth: 120 }}>
-                    <Select
-                      value={chartStyle}
-                      size="small"
-                      onChange={(e) => setChartStyle(e.target.value)}
-                    >
-                      <MenuItem value="lines">Line Charts</MenuItem>
-                      <MenuItem value="bars">Bar Charts</MenuItem>
-                      <MenuItem value="pie">Pie Charts</MenuItem>
-                    </Select>
-                  </FormControl>
-                </ListItem>
-              </List>
-            </CardContent>
-          </Card>
-        </Stack>
-
-        {/* Gig Worker Specific Settings */}
-        <Card>
-          <CardContent>
-            <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-              <SyncAlt color="primary" sx={{ mr: 1 }} />
-              <Typography variant="h6" fontWeight="bold">
-                Gig Worker Specific Settings
-              </Typography>
-            </Box>
-            <Stack direction={{ xs: 'column', md: 'row' }} spacing={3} sx={{ mb: 3 }}>
-              <Box sx={{ flex: 1 }}>
-                <FormControl fullWidth>
-                  <InputLabel>Income Volatility</InputLabel>
-                  <Select
-                    defaultValue="medium"
-                    label="Income Volatility"
-                  >
-                    <MenuItem value="low">Low (Predictable income)</MenuItem>
-                    <MenuItem value="medium">Medium (Some variability)</MenuItem>
-                    <MenuItem value="high">High (Very unpredictable)</MenuItem>
-                  </Select>
-                </FormControl>
-                <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
-                  This helps us adjust budget recommendations and emergency fund calculations
-                </Typography>
-              </Box>
-              <Box sx={{ flex: 1 }}>
-                <FormControl fullWidth>
-                  <InputLabel>GST Registration Status</InputLabel>
-                  <Select
-                    defaultValue="notRequired"
-                    label="GST Registration Status"
-                  >
-                    <MenuItem value="registered">Registered</MenuItem>
-                    <MenuItem value="notRequired">Not Required (Under threshold)</MenuItem>
-                    <MenuItem value="pending">Planning to Register</MenuItem>
-                  </Select>
-                </FormControl>
-                <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
-                  Determines tax calculations and reminders
-                </Typography>
-              </Box>
-            </Stack>
-            <Box>
-              <Divider sx={{ mb: 2 }} />
-              <Typography variant="subtitle1" gutterBottom>
-                Work Categories
-              </Typography>
-              <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', gap: 1 }}>
-                <Chip label="Freelance Development" onDelete={() => {}} color="primary" />
-                <Chip label="Content Writing" onDelete={() => {}} color="primary" />
-                <Chip label="Graphic Design" onDelete={() => {}} color="primary" />
-                <Chip label="Add new category..." onClick={() => {}} variant="outlined" />
               </Stack>
-              <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
-                These categories will appear in income tracking for better organization
-              </Typography>
-            </Box>
-          </CardContent>
-        </Card>
-
-        {/* Save Button */}
-        <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
-          <Button 
-            variant="contained" 
-            size="large"
-            onClick={handleSaveSettings}
-          >
-            Save All Settings
-          </Button>
-        </Box>
-      </Stack>
-    </Box>
+            </Card>
+          </Box>
+          
+          <Box sx={{ mt: 2, textAlign: 'center' }}>
+            <Typography variant="caption" color="text.secondary">
+              Smart Budgeting App for Gig Workers v1.0.0
+            </Typography>
+          </Box>
+        </Stack>
+      </CardContent>
+    </Card>
   );
 };
 

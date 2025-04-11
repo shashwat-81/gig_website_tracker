@@ -13,7 +13,12 @@ import Settings from './components/settings/Settings';
 import Budget from './components/budget/Budget';
 import Savings from './components/savings/Savings';
 import Reports from './components/reports/Reports';
-import Navigation from './components/common/Navigation';
+import Layout from './components/common/Layout';
+import IncomeTracker from './components/income/IncomeTracker';
+import ExpenseTracker from './components/expense/ExpenseTracker';
+import TaxManager from './components/tax/TaxManager';
+import Achievements from './components/gamification/Achievements';
+import Challenges from './components/gamification/Challenges';
 
 const App: React.FC = () => {
   return (
@@ -22,15 +27,20 @@ const App: React.FC = () => {
         <CustomThemeProvider>
           <CssBaseline />
           <Router>
-            <Navigation>
-              <Routes>
-                <Route path="/" element={<Dashboard />} />
+            <Routes>
+              <Route path="/" element={<Layout />}>
+                <Route index element={<Dashboard />} />
                 <Route path="/budget" element={<Budget />} />
                 <Route path="/savings" element={<Savings />} />
                 <Route path="/reports" element={<Reports />} />
                 <Route path="/settings" element={<Settings />} />
-              </Routes>
-            </Navigation>
+                <Route path="/income" element={<IncomeTracker />} />
+                <Route path="/expenses" element={<ExpenseTracker />} />
+                <Route path="/tax" element={<TaxManager />} />
+                <Route path="/achievements" element={<Achievements />} />
+                <Route path="/challenges" element={<Challenges />} />
+              </Route>
+            </Routes>
           </Router>
         </CustomThemeProvider>
       </ThemeProvider>

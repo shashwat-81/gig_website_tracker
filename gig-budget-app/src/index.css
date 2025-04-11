@@ -5,9 +5,45 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-color: var(--background-color);
+  color: var(--text-primary);
+  transition: all 0.3s ease;
 }
 
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
+}
+
+/* Theme Variables */
+:root {
+  /* Light theme (default) */
+  --background-color: #ffffff;
+  --card-background: #f8f9fa;
+  --text-primary: #212529;
+  --text-secondary: #6c757d;
+  --border-color: #dee2e6;
+  --primary-color: #1976d2;
+  --secondary-color: #dc004e;
+  --success-color: #28a745;
+  --warning-color: #ffc107;
+  --error-color: #dc3545;
+  --chart-color-1: #8884d8;
+  --chart-color-2: #82ca9d;
+}
+
+[data-theme='dark'] {
+  /* Dark theme */
+  --background-color: #121212;
+  --card-background: #1e1e1e;
+  --text-primary: #e0e0e0;
+  --text-secondary: #aaaaaa;
+  --border-color: #333333;
+  --primary-color: #90caf9;
+  --secondary-color: #f48fb1;
+  --success-color: #4caf50;
+  --warning-color: #ff9800;
+  --error-color: #f44336;
+  --chart-color-1: #bb86fc;
+  --chart-color-2: #03dac6;
 }

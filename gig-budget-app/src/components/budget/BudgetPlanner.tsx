@@ -4,28 +4,12 @@ import {
   Card,
   CardContent,
   Typography,
-  TextField,
   Button,
-  MenuItem,
-  List,
-  ListItem,
-  ListItemText,
-  ListItemSecondaryAction,
   IconButton,
-  Paper,
-  Divider,
-  Chip,
   Stack,
   LinearProgress,
-  InputLabel,
-  FormControl,
-  Select,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions
 } from '@mui/material';
-import { Add, Delete, Edit, Save, AttachMoney, AccountBalance, TrendingUp } from '@mui/icons-material';
+import { Add, Delete, Category as CategoryIcon } from '@mui/icons-material';
 
 // Budget categories relevant for Indian gig workers
 const BUDGET_CATEGORIES = [
@@ -56,19 +40,19 @@ interface BudgetItem {
 
 const BudgetPlanner: React.FC = () => {
   const [budgetItems, setBudgetItems] = useState<BudgetItem[]>([
-    { id: 1, category: 'Housing & Rent', planned: 10000, actual: 10000 },
-    { id: 2, category: 'Groceries', planned: 6000, actual: 5500 },
-    { id: 3, category: 'Transportation', planned: 3000, actual: 3200 },
-    { id: 4, category: 'Utilities', planned: 2500, actual: 2300 },
-    { id: 5, category: 'Mobile & Internet', planned: 1200, actual: 1200 },
-    { id: 6, category: 'Savings', planned: 5000, actual: 4000 }
+    { id: 1, category: 'Housing & Rent', planned: 8000, actual: 8000 },
+    { id: 2, category: 'Groceries', planned: 5000, actual: 4800 },
+    { id: 3, category: 'Transportation', planned: 5000, actual: 5200 },
+    { id: 4, category: 'Utilities', planned: 1500, actual: 1400 },
+    { id: 5, category: 'Mobile & Internet', planned: 800, actual: 800 },
+    { id: 6, category: 'Savings', planned: 3000, actual: 2500 },
+    { id: 7, category: 'Healthcare', planned: 1000, actual: 800 },
+    { id: 8, category: 'Equipment', planned: 1200, actual: 1500 },
+    { id: 9, category: 'Food (Outside)', planned: 2200, actual: 2500 }
   ]);
 
   const [newCategory, setNewCategory] = useState('');
   const [newAmount, setNewAmount] = useState('');
-  const [editingId, setEditingId] = useState<number | null>(null);
-  const [editAmount, setEditAmount] = useState('');
-  const [dialogOpen, setDialogOpen] = useState(false);
 
   const handleAddBudgetItem = () => {
     if (newCategory && newAmount) {
@@ -86,40 +70,12 @@ const BudgetPlanner: React.FC = () => {
       setBudgetItems([...budgetItems, newItem]);
       setNewCategory('');
       setNewAmount('');
-      setDialogOpen(false);
     }
   };
 
   const handleDeleteItem = (id: number) => {
     setBudgetItems(budgetItems.filter(item => item.id !== id));
   };
-
-  const handleStartEdit = (id: number, amount: number) => {
-    setEditingId(id);
-    setEditAmount(amount.toString());
-  };
-
-  const handleSaveEdit = (id: number) => {
-    const updatedItems = budgetItems.map(item => {
-      if (item.id === id) {
-        return { ...item, actual: Number(editAmount) };
-      }
-      return item;
-    });
-    
-    setBudgetItems(updatedItems);
-    setEditingId(null);
-    setEditAmount('');
-  };
-
-  // Calculate budget stats
-  const totalPlanned = budgetItems.reduce((sum, item) => sum + item.planned, 0);
-  const totalActual = budgetItems.reduce((sum, item) => sum + item.actual, 0);
-  const remainingBudget = totalPlanned - totalActual;
-  
-  // Available categories that aren't already in the budget
-  const categories = budgetItems.map(item => item.category);
-  const availableCategories = BUDGET_CATEGORIES.filter(cat => !categories.includes(cat));
 
   // Calculate budget summary
   const totalBudget = budgetItems.reduce((sum, item) => sum + item.planned, 0);
@@ -159,14 +115,14 @@ const BudgetPlanner: React.FC = () => {
               <Stack spacing={3}>
                 <Box>
                   <Stack direction="row" spacing={1} alignItems="center" mb={1}>
-                    <AttachMoney color="primary" />
+                    <CategoryIcon color="primary" />
                     <Typography variant="body1">Total Budget</Typography>
                   </Stack>
                   <Typography variant="h4" color="primary.main">₹{totalBudget.toLocaleString()}</Typography>
                 </Box>
                 <Box>
                   <Stack direction="row" spacing={1} alignItems="center" mb={1}>
-                    <AccountBalance color="success" />
+                    <CategoryIcon color="success" />
                     <Typography variant="body1">Fixed Expenses</Typography>
                   </Stack>
                   <Typography variant="h5" color="success.main">₹{fixedBudget.toLocaleString()}</Typography>
@@ -179,7 +135,7 @@ const BudgetPlanner: React.FC = () => {
                 </Box>
                 <Box>
                   <Stack direction="row" spacing={1} alignItems="center" mb={1}>
-                    <TrendingUp color="secondary" />
+                    <CategoryIcon color="secondary" />
                     <Typography variant="body1">Variable Expenses</Typography>
                   </Stack>
                   <Typography variant="h5" color="secondary.main">₹{variableBudget.toLocaleString()}</Typography>
@@ -240,7 +196,7 @@ const BudgetPlanner: React.FC = () => {
                 <Button 
                   variant="contained" 
                   startIcon={<Add />}
-                  onClick={() => setDialogOpen(true)}
+                  onClick={() => setNewCategory('')}
                 >
                   Add Budget Item
                 </Button>
@@ -303,16 +259,9 @@ const BudgetPlanner: React.FC = () => {
                   }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <Box>
-                        <Stack direction="row" spacing={1} alignItems="center">
-                          <Typography variant="subtitle1" fontWeight="bold">
-                            {item.category}
-                          </Typography>
-                          <Chip 
-                            label={item.planned !== item.actual ? 'Variable' : 'Fixed'} 
-                            color={item.planned !== item.actual ? 'secondary' : 'primary'}
-                            size="small"
-                          />
-                        </Stack>
+                        <Typography variant="subtitle1" fontWeight="bold">
+                          {item.category}
+                        </Typography>
                         <Typography variant="body2" color="text.secondary">
                           ₹{item.actual.toLocaleString()} of ₹{item.planned.toLocaleString()}
                         </Typography>
@@ -339,44 +288,6 @@ const BudgetPlanner: React.FC = () => {
           </CardContent>
         </Card>
       </Box>
-
-      {/* Add Budget Item Dialog */}
-      <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>Add New Budget Item</DialogTitle>
-        <DialogContent>
-          <Stack spacing={3} sx={{ mt: 1 }}>
-            <FormControl fullWidth>
-              <InputLabel>Category</InputLabel>
-              <Select
-                value={newCategory}
-                label="Category"
-                onChange={(e) => setNewCategory(e.target.value)}
-              >
-                {availableCategories.map((category) => (
-                  <MenuItem key={category} value={category}>{category}</MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-            <TextField
-              label="Planned Amount (₹)"
-              value={newAmount}
-              onChange={(e) => setNewAmount(e.target.value)}
-              type="number"
-              fullWidth
-            />
-          </Stack>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setDialogOpen(false)}>Cancel</Button>
-          <Button 
-            variant="contained" 
-            onClick={handleAddBudgetItem}
-            disabled={!newCategory || !newAmount}
-          >
-            Add Item
-          </Button>
-        </DialogActions>
-      </Dialog>
     </Box>
   );
 };

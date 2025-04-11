@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Card,
@@ -12,7 +12,6 @@ import {
   Alert,
   AlertTitle,
   FormControl,
-  InputLabel,
   Select,
   MenuItem,
   InputAdornment,
@@ -24,25 +23,27 @@ import {
   TableRow,
   IconButton,
   Paper,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  LinearProgress
+  LinearProgress,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  Tooltip
 } from '@mui/material';
 import {
   Calculate,
   CalendarToday,
   ReceiptLong,
-  FileUpload,
   CloudUpload,
   Info,
   Add,
   Edit,
   Delete,
-  QuestionMark,
-  BarChart,
-  LocalOffer
+  LocalOffer,
+  ExpandMore,
+  Payment,
+  NotificationsActive,
+  AddCircleOutline,
+  HelpOutline
 } from '@mui/icons-material';
 
 // Sample data for tax deductions specific to Indian gig workers
@@ -103,14 +104,23 @@ const availableDeductions = [
   }
 ];
 
-// Sample tax slabs for India FY 2025-26 (illustrative)
+// Sample tax slabs for India FY 2025-26 (New Tax Regime)
 const taxSlabs = [
-  { min: 0, max: 300000, rate: 0, description: 'No tax up to ₹3,00,000' },
-  { min: 300001, max: 600000, rate: 5, description: '5% on income between ₹3,00,001 and ₹6,00,000' },
-  { min: 600001, max: 900000, rate: 10, description: '10% on income between ₹6,00,001 and ₹9,00,000' },
-  { min: 900001, max: 1200000, rate: 15, description: '15% on income between ₹9,00,001 and ₹12,00,000' },
-  { min: 1200001, max: 1500000, rate: 20, description: '20% on income between ₹12,00,001 and ₹15,00,000' },
-  { min: 1500001, max: Infinity, rate: 30, description: '30% on income above ₹15,00,000' }
+  { min: 0, max: 400000, rate: 0, description: 'No tax up to ₹4,00,000' },
+  { min: 400001, max: 800000, rate: 5, description: '5% on income between ₹4,00,001 and ₹8,00,000' },
+  { min: 800001, max: 1200000, rate: 10, description: '10% on income between ₹8,00,001 and ₹12,00,000' },
+  { min: 1200001, max: 1600000, rate: 15, description: '15% on income between ₹12,00,001 and ₹16,00,000' },
+  { min: 1600001, max: 2000000, rate: 20, description: '20% on income between ₹16,00,001 and ₹20,00,000' },
+  { min: 2000001, max: 2400000, rate: 25, description: '25% on income between ₹20,00,001 and ₹24,00,000' },
+  { min: 2400001, max: Infinity, rate: 30, description: '30% on income above ₹24,00,000' }
+];
+
+// Old tax regime slabs for comparison
+const oldTaxSlabs = [
+  { min: 0, max: 250000, rate: 0, description: 'No tax up to ₹2,50,000' },
+  { min: 250001, max: 500000, rate: 5, description: '5% on income between ₹2,50,001 and ₹5,00,000' },
+  { min: 500001, max: 1000000, rate: 20, description: '20% on income between ₹5,00,001 and ₹10,00,000' },
+  { min: 1000001, max: Infinity, rate: 30, description: '30% on income above ₹10,00,000' }
 ];
 
 // Quarterly due dates for advance tax in India
@@ -121,32 +131,54 @@ const taxDueDates = [
   { quarter: 'Q4', dueDate: '15 Mar 2026', percentage: '100%' }
 ];
 
+// Define the ExpenseRecord interface
+interface ExpenseRecord {
+  id: number;
+  description: string;
+  amount: number;
+  date: string;
+  isDeductible: boolean;
+}
+
 interface TaxManagerProps {}
 
 const TaxManager: React.FC<TaxManagerProps> = () => {
-  const [estimatedAnnualIncome, setEstimatedAnnualIncome] = useState<number>(600000);
-  const [estimatedDeductions, setEstimatedDeductions] = useState<number>(150000);
-  const [taxRegime, setTaxRegime] = useState<'old' | 'new'>('old');
-  const [recordedExpenses, setRecordedExpenses] = useState<any[]>([
-    { id: 1, date: '2025-04-10', category: 'Vehicle Expenses', amount: 12000, description: 'Fuel and maintenance', proofAvailable: true },
-    { id: 2, date: '2025-05-15', category: 'Mobile & Internet', amount: 2500, description: 'Monthly bill', proofAvailable: true },
-    { id: 3, date: '2025-06-02', category: 'Equipment Depreciation', amount: 15000, description: 'Laptop depreciation', proofAvailable: false }
-  ]);
+  const [estimatedAnnualIncome, setEstimatedAnnualIncome] = useState<number>(332700);
+  const [estimatedDeductions, setEstimatedDeductions] = useState<number>(80000);
+  const [taxRegime, setTaxRegime] = useState<'old' | 'new'>('new');
   const [activeTab, setActiveTab] = useState<'calculator' | 'deductions' | 'reminders'>('calculator');
   const [showTaxSlabs, setShowTaxSlabs] = useState(false);
+  const [expenses, setExpenses] = useState<ExpenseRecord[]>([]);
+  const [newExpenseDesc, setNewExpenseDesc] = useState('');
+  const [newExpenseAmount, setNewExpenseAmount] = useState<string | number>('');
+  const [newExpenseDate, setNewExpenseDate] = useState(new Date().toISOString().split('T')[0]);
 
-  // Calculate taxable income
-  const taxableIncome = Math.max(0, estimatedAnnualIncome - estimatedDeductions);
+  // Calculate taxable income based on the selected tax regime
+  const taxableIncome = taxRegime === 'new' 
+    ? Math.max(0, estimatedAnnualIncome - 50000) // Only standard deduction in new regime
+    : Math.max(0, estimatedAnnualIncome - estimatedDeductions);
   
   // Calculate tax based on slabs (simplified)
   const calculateTax = (income: number): number => {
     let tax = 0;
     
-    for (const slab of taxSlabs) {
+    // Use appropriate tax slabs based on regime
+    const applicableSlabs = taxRegime === 'new' ? taxSlabs : oldTaxSlabs;
+    
+    for (const slab of applicableSlabs) {
       if (income > slab.min) {
         const slabAmount = Math.min(income, slab.max) - slab.min;
         tax += slabAmount * (slab.rate / 100);
       }
+    }
+    
+    // Apply tax rebate as per Union Budget 2025-26
+    if (taxRegime === 'new' && income <= 1200000) {
+      // New regime: Tax rebate for those with income up to Rs 12 lakh
+      tax = 0;
+    } else if (taxRegime === 'old' && income <= 500000) {
+      // Old regime: Tax rebate for those with income up to Rs 5 lakh
+      tax = 0;
     }
     
     // Add 4% cess (simplified)
@@ -174,7 +206,28 @@ const TaxManager: React.FC<TaxManagerProps> = () => {
   });
   
   // Calculate total eligible deductions from recorded expenses
-  const totalEligibleExpenses = recordedExpenses.reduce((sum, expense) => sum + expense.amount, 0);
+  const totalEligibleExpenses = expenses.reduce((sum, expense) => sum + expense.amount, 0);
+
+  const handleAddExpense = () => {
+    const amountNum = parseFloat(newExpenseAmount as string);
+    if (newExpenseDesc && !isNaN(amountNum) && amountNum > 0) {
+      const newExpense: ExpenseRecord = {
+        id: Date.now(),
+        description: newExpenseDesc,
+        amount: amountNum,
+        date: newExpenseDate,
+        isDeductible: false
+      };
+      setExpenses([...expenses, newExpense]);
+      setNewExpenseDesc('');
+      setNewExpenseAmount('');
+      setNewExpenseDate(new Date().toISOString().split('T')[0]);
+    }
+  };
+
+  const handleDeleteExpense = (id: number) => {
+    setExpenses(expenses.filter(exp => exp.id !== id));
+  };
 
   return (
     <Card>
@@ -256,11 +309,27 @@ const TaxManager: React.FC<TaxManagerProps> = () => {
                       value={taxRegime}
                       onChange={(e) => setTaxRegime(e.target.value as 'old' | 'new')}
                     >
-                      <MenuItem value="old">Old Regime (with deductions)</MenuItem>
-                      <MenuItem value="new">New Regime (lower rates, no deductions)</MenuItem>
+                      <MenuItem value="new">New Tax Regime (Union Budget 2025-26)</MenuItem>
+                      <MenuItem value="old">Old Tax Regime (with higher deductions)</MenuItem>
                     </Select>
                   </FormControl>
                 </Box>
+                
+                {taxRegime === 'new' && (
+                  <Alert severity="info" sx={{ mt: 2 }}>
+                    <AlertTitle>New Tax Regime Benefits</AlertTitle>
+                    The Union Budget 2025-26 has increased the tax exemption limit to ₹4 lakh, with a complete tax rebate for income up to ₹12 lakh. 
+                    With your current income of ₹{estimatedAnnualIncome.toLocaleString()}, this may lead to significant tax savings.
+                  </Alert>
+                )}
+                
+                {taxRegime === 'old' && (
+                  <Alert severity="info" sx={{ mt: 2 }}>
+                    <AlertTitle>Old Tax Regime Information</AlertTitle>
+                    Under the old tax regime, there's tax exemption up to ₹2.5 lakh with a complete rebate for income up to ₹5 lakh.
+                    This regime allows you to claim more deductions but has higher tax rates compared to the new regime.
+                  </Alert>
+                )}
               </Stack>
             </Box>
             
@@ -306,33 +375,54 @@ const TaxManager: React.FC<TaxManagerProps> = () => {
               </Button>
               
               {showTaxSlabs && (
-                <TableContainer component={Paper} variant="outlined" sx={{ mt: 2 }}>
-                  <Table size="small">
-                    <TableHead>
-                      <TableRow sx={{ bgcolor: 'grey.100' }}>
-                        <TableCell>Income Range</TableCell>
-                        <TableCell align="right">Tax Rate</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {taxSlabs.map((slab, index) => (
-                        <TableRow key={index}>
-                          <TableCell>
-                            {slab.min.toLocaleString()} - {slab.max !== Infinity ? slab.max.toLocaleString() : 'Above'}
-                          </TableCell>
-                          <TableCell align="right">{slab.rate}%</TableCell>
+                <>
+                  <Typography variant="subtitle2" sx={{ mt: 1, mb: 1 }}>
+                    {taxRegime === 'new' ? 'New Tax Regime FY 2025-26' : 'Old Tax Regime FY 2025-26'} Tax Slabs
+                  </Typography>
+                  <TableContainer component={Paper} variant="outlined" sx={{ mt: 1 }}>
+                    <Table size="small">
+                      <TableHead>
+                        <TableRow sx={{ bgcolor: 'grey.100' }}>
+                          <TableCell>Income Range</TableCell>
+                          <TableCell align="right">Tax Rate</TableCell>
                         </TableRow>
-                      ))}
-                      <TableRow>
-                        <TableCell colSpan={2}>
-                          <Typography variant="caption" color="text.secondary">
-                            Plus 4% Health and Education Cess on total tax
-                          </Typography>
-                        </TableCell>
-                      </TableRow>
-                    </TableBody>
-                  </Table>
-                </TableContainer>
+                      </TableHead>
+                      <TableBody>
+                        {taxRegime === 'new' ? taxSlabs.map((slab, index) => (
+                          <TableRow key={index}>
+                            <TableCell>
+                              {slab.min.toLocaleString()} - {slab.max !== Infinity ? slab.max.toLocaleString() : 'Above'}
+                            </TableCell>
+                            <TableCell align="right">{slab.rate}%</TableCell>
+                          </TableRow>
+                        )) : oldTaxSlabs.map((slab, index) => (
+                          <TableRow key={index}>
+                            <TableCell>
+                              {slab.min.toLocaleString()} - {slab.max !== Infinity ? slab.max.toLocaleString() : 'Above'}
+                            </TableCell>
+                            <TableCell align="right">{slab.rate}%</TableCell>
+                          </TableRow>
+                        ))}
+                        <TableRow>
+                          <TableCell colSpan={2}>
+                            <Typography variant="caption" color="text.secondary">
+                              Plus 4% Health and Education Cess on total tax
+                            </Typography>
+                          </TableCell>
+                        </TableRow>
+                        <TableRow>
+                          <TableCell colSpan={2}>
+                            <Typography variant="caption" color="text.secondary" fontWeight="bold">
+                              {taxRegime === 'new' 
+                                ? 'Complete tax rebate for income up to ₹12 lakh'
+                                : 'Complete tax rebate for income up to ₹5 lakh'}
+                            </Typography>
+                          </TableCell>
+                        </TableRow>
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                </>
               )}
               
               <Alert severity="info" sx={{ mt: 2 }}>
@@ -370,25 +460,20 @@ const TaxManager: React.FC<TaxManagerProps> = () => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {recordedExpenses.map((expense) => (
+                  {expenses.map((expense) => (
                     <TableRow key={expense.id}>
                       <TableCell>{expense.date}</TableCell>
-                      <TableCell>{expense.category}</TableCell>
+                      <TableCell>{expense.description}</TableCell>
                       <TableCell align="right">₹{expense.amount.toLocaleString()}</TableCell>
                       <TableCell>
-                        {expense.proofAvailable ? (
-                          <Chip size="small" label="Available" color="success" />
-                        ) : (
-                          <Chip size="small" label="Missing" color="error" />
-                        )}
+                        {/* Placeholder for proof upload */}
                       </TableCell>
                       <TableCell align="right">
-                        <IconButton size="small">
-                          <Edit fontSize="small" />
-                        </IconButton>
-                        <IconButton size="small" color="error">
-                          <Delete fontSize="small" />
-                        </IconButton>
+                        <Tooltip title="Delete Expense">
+                          <IconButton size="small" color="error" onClick={() => handleDeleteExpense(expense.id)}>
+                            <Delete fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
                       </TableCell>
                     </TableRow>
                   ))}

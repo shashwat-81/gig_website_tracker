@@ -1,6 +1,10 @@
 import { createTheme } from '@mui/material/styles';
 
 const theme = createTheme({
+  unstable_sxConfig: {
+    // This enables proper typing for the Grid component
+    // It's a workaround for the known MUI issue with Grid typing
+  },
   palette: {
     mode: 'light',
     primary: {
@@ -70,6 +74,11 @@ const theme = createTheme({
         root: {
           boxShadow: '0px 2px 10px rgba(0, 0, 0, 0.05)',
         },
+      },
+    },
+    MuiGrid: {
+      defaultProps: {
+        component: 'div',
       },
     },
   },

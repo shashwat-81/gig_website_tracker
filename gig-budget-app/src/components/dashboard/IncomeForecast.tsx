@@ -1,19 +1,19 @@
 import React, { useState } from 'react';
-import { Box, Card, CardContent, Typography, Stack, Button, Grid, Chip, LinearProgress } from '@mui/material';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line } from 'recharts';
+import { Box, Card, CardContent, Typography, Stack, Button, LinearProgress } from '@mui/material';
+import { XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line } from 'recharts';
 import { TrendingUp, ShowChart, CalendarMonth } from '@mui/icons-material';
 
 // Simulated income forecast data - would be replaced with ML predictions in production
 const forecastData = [
-  { name: 'Jan', actual: 35000, predicted: 32000, confidence: 90 },
-  { name: 'Feb', actual: 32000, predicted: 30000, confidence: 88 },
-  { name: 'Mar', actual: 38000, predicted: 35000, confidence: 85 },
-  { name: 'Apr', actual: 28000, predicted: 30000, confidence: 82 },
-  { name: 'May', actual: 33000, predicted: 32000, confidence: 87 },
-  { name: 'Jun', actual: 42000, predicted: 40000, confidence: 84 },
-  { name: 'Jul', actual: null, predicted: 37000, confidence: 80 },
-  { name: 'Aug', actual: null, predicted: 41000, confidence: 75 },
-  { name: 'Sep', actual: null, predicted: 38000, confidence: 70 },
+  { name: 'Jan', actual: 27500, predicted: 26000, confidence: 90 },
+  { name: 'Feb', actual: 26200, predicted: 25000, confidence: 88 },
+  { name: 'Mar', actual: 30500, predicted: 29000, confidence: 85 },
+  { name: 'Apr', actual: 24800, predicted: 25000, confidence: 82 },
+  { name: 'May', actual: 26800, predicted: 27000, confidence: 87 },
+  { name: 'Jun', actual: 32000, predicted: 30000, confidence: 84 },
+  { name: 'Jul', actual: null, predicted: 28500, confidence: 80 },
+  { name: 'Aug', actual: null, predicted: 31000, confidence: 75 },
+  { name: 'Sep', actual: null, predicted: 29000, confidence: 70 },
 ];
 
 // Simulated seasonal insights for gig work in India
