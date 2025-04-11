@@ -10,6 +10,7 @@ import os
 import json
 from datetime import datetime, timedelta
 import random
+import glob
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
@@ -33,6 +34,58 @@ def load_or_generate_models():
 
 # Initialize models
 models = load_or_generate_models()
+
+# Helper function to load category-specific test data
+def load_category_test_data(category):
+    """Load test data for a specific category"""
+    category_map = {
+        'Food Delivery': 'food_delivery',
+        'Cab Driver': 'cab_driver', 
+        'House Cleaner': 'house_cleaner'
+    }
+    
+    internal_category = category_map.get(category, 'food_delivery')
+    
+    # Find user files matching this category
+    matching_files = []
+    for file_path in glob.glob("data/user_*_data.json"):
+        with open(file_path, 'r') as f:
+            try:
+                data = json.load(f)
+                income_sources = [item.get("category", "") for item in data.get("incomeData", [])]
+                
+                if category in income_sources:
+                    matching_files.append(file_path)
+            except Exception as e:
+                print(f"Error loading file {file_path}: {e}")
+    
+    # Use the first matching file
+    if matching_files:
+        with open(matching_files[0], 'r') as f:
+            return json.load(f)
+    
+    # Fallback: Generate simple mock data
+    return {
+        "incomeData": [
+            {"amount": 1000, "date": "2024-01-01", "category": category},
+            {"amount": 1200, "date": "2024-02-01", "category": category},
+            {"amount": 1100, "date": "2024-03-01", "category": category},
+        ],
+        "expenseData": [
+            {"amount": 500, "date": "2024-01-15", "category": "Housing"},
+            {"amount": 500, "date": "2024-02-15", "category": "Housing"},
+            {"amount": 200, "date": "2024-01-20", "category": "Food"},
+            {"amount": 200, "date": "2024-02-20", "category": "Food"},
+        ]
+    }
+
+# Add an endpoint to serve test data for a specific category
+@app.route('/api/test-data', methods=['GET'])
+def get_test_data():
+    """Endpoint to get test data for a specific category"""
+    category = request.args.get('category', 'Food Delivery')
+    data = load_category_test_data(category)
+    return jsonify(data)
 
 # Helper functions for data processing
 def preprocess_financial_data(data):
@@ -201,261 +254,308 @@ def savings_plan():
     data = request.json
     income_data = data.get('incomeData', [])
     expense_data = data.get('expenseData', [])
-    user_profile = data.get('userProfile', {})
     
     if not income_data or not expense_data:
-        return jsonify({"error": "Insufficient data provided"}), 400
+        return jsonify({"error": "Both income and expense data are required"}), 400
     
     # Calculate total income and expenses
-    total_income = sum(income['amount'] for income in income_data)
-    total_expenses = sum(expense['amount'] for expense in expense_data)
+    total_income = sum(item['amount'] for item in income_data)
+    total_expenses = sum(item['amount'] for item in expense_data)
     
-    # Calculate monthly averages (assuming data is for the last 3 months)
-    months_of_data = 3
-    monthly_income = total_income / months_of_data
-    monthly_expenses = total_expenses / months_of_data
+    # Calculate current savings
+    current_savings = total_income - total_expenses
+    current_savings_percent = (current_savings / total_income) * 100 if total_income > 0 else 0
     
-    # Calculate savings potential
-    current_savings_rate = max(0, (monthly_income - monthly_expenses) / monthly_income) if monthly_income > 0 else 0
-    target_savings_rate = min(0.3, current_savings_rate + 0.05)  # Aim for 5% increase, up to 30%
+    # Calculate optimal savings (target 20-30% of income)
+    target_percent = 25  # Target 25% savings
+    target_savings = total_income * (target_percent / 100)
+    savings_gap = target_savings - current_savings
     
-    # Emergency fund calculation (3-6 months of expenses)
-    emergency_fund_min = monthly_expenses * 3
-    emergency_fund_max = monthly_expenses * 6
+    # Calculate months to achieve emergency fund (3 months of expenses)
+    emergency_fund_target = total_expenses * 3
+    months_to_emergency_fund = emergency_fund_target / current_savings if current_savings > 0 else float('inf')
     
-    # Income volatility (simplified)
-    income_amounts = [income['amount'] for income in income_data]
-    income_volatility = np.std(income_amounts) / np.mean(income_amounts) if income_amounts else 0
+    # Generate savings strategies
+    strategies = []
     
-    # Adjust emergency fund based on income volatility
-    volatility_factor = min(1.5, 1 + income_volatility)
-    recommended_emergency_fund = emergency_fund_min * volatility_factor
+    # Add category-specific strategies based on the profile (from job category)
+    job_category = None
+    for item in income_data:
+        if 'category' in item:
+            job_category = item['category']
+            break
     
-    # Generate savings plan
-    monthly_savings_target = monthly_income * target_savings_rate
+    # Basic strategy for everyone
+    strategies.append({
+        'name': 'Automate Savings',
+        'description': 'Set up automatic transfers to a separate savings account on payday',
+        'potential_impact': '₹' + str(round(total_income * 0.05, 2)) + ' per month',
+        'difficulty': 'Easy'
+    })
     
-    # Calculate time to reach emergency fund
-    time_to_emergency_fund = recommended_emergency_fund / monthly_savings_target if monthly_savings_target > 0 else float('inf')
+    # Strategy for irregular income
+    strategies.append({
+        'name': 'Income Smoothing',
+        'description': 'During high-income periods, save extra to cover low-income months',
+        'potential_impact': 'Reduced financial stress',
+        'difficulty': 'Medium'
+    })
     
-    # Generate plan
-    plan = {
-        "monthly_income": round(monthly_income, 2),
-        "monthly_expenses": round(monthly_expenses, 2),
-        "current_savings_rate": round(current_savings_rate * 100, 1),
-        "recommended_savings_rate": round(target_savings_rate * 100, 1),
-        "monthly_savings_target": round(monthly_savings_target, 2),
-        "emergency_fund": {
-            "recommended_amount": round(recommended_emergency_fund, 2),
-            "months_to_achieve": round(time_to_emergency_fund, 1) if time_to_emergency_fund != float('inf') else "N/A"
-        },
-        "income_volatility": round(income_volatility * 100, 1),
-        "recommendations": []
-    }
-    
-    # Add specific recommendations
-    if current_savings_rate < 0.1:
-        plan["recommendations"].append({
-            "type": "urgent",
-            "title": "Increase Your Savings Rate",
-            "description": "Your current savings rate is less than 10%. Try to increase your savings by reducing non-essential expenses."
+    # Category-specific strategies
+    if job_category == 'Food Delivery':
+        strategies.append({
+            'name': 'Vehicle Efficiency',
+            'description': 'Optimize delivery routes and maintenance to reduce fuel costs',
+            'potential_impact': '₹' + str(round(total_expenses * 0.03, 2)) + ' per month',
+            'difficulty': 'Medium'
         })
-    
-    if income_volatility > 0.3:
-        plan["recommendations"].append({
-            "type": "important",
-            "title": "Build a Larger Emergency Fund",
-            "description": "Your income is highly variable. Aim for 6 months of expenses in your emergency fund."
+    elif job_category == 'Cab Driver':
+        strategies.append({
+            'name': 'Strategic Driving Hours',
+            'description': 'Focus on peak hours when fares are higher to maximize earnings',
+            'potential_impact': '₹' + str(round(total_income * 0.08, 2)) + ' per month',
+            'difficulty': 'Medium'
         })
-    
-    if monthly_income - monthly_expenses < 5000:
-        plan["recommendations"].append({
-            "type": "consideration",
-            "title": "Increase Income Sources",
-            "description": "Your income barely covers expenses. Consider adding new income streams or gigs."
+    elif job_category == 'House Cleaner':
+        strategies.append({
+            'name': 'Bulk Supply Purchases',
+            'description': 'Buy cleaning supplies in bulk to reduce costs',
+            'potential_impact': '₹' + str(round(total_expenses * 0.02, 2)) + ' per month',
+            'difficulty': 'Easy'
         })
     
     return jsonify({
-        "savings_plan": plan
+        "plan": {
+            "current_savings": round(current_savings, 2),
+            "current_savings_percent": round(current_savings_percent, 2),
+            "target_amount": round(target_savings, 2),
+            "target_percent": target_percent,
+            "savings_gap": round(savings_gap, 2),
+            "emergency_fund_target": round(emergency_fund_target, 2),
+            "months_to_emergency_fund": round(months_to_emergency_fund, 1),
+            "strategies": strategies
+        }
     })
 
 @app.route('/api/tax-suggestions', methods=['POST'])
 def tax_suggestions():
-    """Generate tax-saving suggestions based on income profile"""
+    """Provide personalized tax optimization suggestions"""
     data = request.json
     income_data = data.get('incomeData', [])
-    user_profile = data.get('userProfile', {})
     
     if not income_data:
-        return jsonify({"error": "No income data provided"}), 400
+        return jsonify({"error": "Income data is required"}), 400
     
-    # Calculate annual income (projected)
-    monthly_income = sum(income['amount'] for income in income_data) / 3  # Assuming 3 months of data
-    projected_annual_income = monthly_income * 12
+    # Calculate total income
+    total_income = sum(item['amount'] for item in income_data)
+    annual_income = total_income * (12 / len(income_data)) if len(income_data) > 0 else 0
     
-    # Tax brackets for India (simplified)
-    tax_brackets = [
-        {"limit": 250000, "rate": 0},
-        {"limit": 500000, "rate": 0.05},
-        {"limit": 750000, "rate": 0.1},
-        {"limit": 1000000, "rate": 0.15},
-        {"limit": 1250000, "rate": 0.2},
-        {"limit": 1500000, "rate": 0.25},
-        {"limit": float('inf'), "rate": 0.3}
-    ]
+    # Determine which tax bracket the user falls into (simplified for India 2024-25)
+    tax_liability = 0
+    if annual_income <= 300000:
+        tax_bracket = "No tax up to ₹3,00,000"
+        tax_liability = 0
+    elif annual_income <= 600000:
+        tax_bracket = "5% tax on income between ₹3,00,001 and ₹6,00,000"
+        tax_liability = (annual_income - 300000) * 0.05
+    elif annual_income <= 900000:
+        tax_bracket = "10% tax on income between ₹6,00,001 and ₹9,00,000"
+        tax_liability = 15000 + (annual_income - 600000) * 0.1
+    elif annual_income <= 1200000:
+        tax_bracket = "15% tax on income between ₹9,00,001 and ₹12,00,000"
+        tax_liability = 45000 + (annual_income - 900000) * 0.15
+    elif annual_income <= 1500000:
+        tax_bracket = "20% tax on income between ₹12,00,001 and ₹15,00,000"
+        tax_liability = 90000 + (annual_income - 1200000) * 0.2
+    else:
+        tax_bracket = "30% tax on income above ₹15,00,000"
+        tax_liability = 150000 + (annual_income - 1500000) * 0.3
     
-    # Calculate current tax estimate (very simplified)
-    taxable_income = projected_annual_income
-    estimated_tax = 0
-    
-    prev_limit = 0
-    for bracket in tax_brackets:
-        if taxable_income > prev_limit:
-            tax_in_bracket = min(taxable_income - prev_limit, bracket["limit"] - prev_limit) * bracket["rate"]
-            estimated_tax += tax_in_bracket
-        prev_limit = bracket["limit"]
-    
-    # Generate suggestions
+    # Generate tax optimization suggestions
     suggestions = []
     
-    # Section 80C
-    if projected_annual_income > 300000:
-        suggestions.append({
-            "type": "tax_deduction",
-            "title": "Section 80C Investments",
-            "description": "Invest in PPF, ELSS, or insurance to avail tax deduction up to ₹1,50,000.",
-            "potential_saving": min(150000 * 0.2, estimated_tax * 0.3)  # Assuming 20% tax rate, max 30% of current tax
-        })
-    
-    # Health Insurance
+    # Basic suggestions for everyone
     suggestions.append({
-        "type": "tax_deduction",
-        "title": "Health Insurance Premium (Section 80D)",
-        "description": "Pay for health insurance to claim a deduction up to ₹25,000 (₹50,000 for senior citizens).",
-        "potential_saving": min(25000 * 0.2, estimated_tax * 0.1)  # Assuming 20% tax rate, max 10% of current tax
+        'title': 'Track All Business Expenses',
+        'description': 'Keep detailed records of work-related expenses like fuel, vehicle maintenance, and mobile phone bills',
+        'potential_savings': round(annual_income * 0.02, 2)  # Estimate 2% savings
     })
     
-    # Home Loan Interest
-    if projected_annual_income > 500000:
-        suggestions.append({
-            "type": "tax_deduction",
-            "title": "Home Loan Interest (Section 24)",
-            "description": "If you have a home loan, you can claim deduction on interest paid up to ₹2,00,000.",
-            "potential_saving": min(200000 * 0.2, estimated_tax * 0.4)  # Assuming 20% tax rate, max 40% of current tax
-        })
+    suggestions.append({
+        'title': 'Invest in Tax-Saving Instruments',
+        'description': 'Consider investments in PPF, ELSS, or NPS to reduce taxable income',
+        'potential_savings': round(min(annual_income * 0.05, 150000), 2)  # Up to Section 80C limit
+    })
     
-    # NPS
-    if projected_annual_income > 800000:
-        suggestions.append({
-            "type": "tax_deduction",
-            "title": "National Pension Scheme (Section 80CCD)",
-            "description": "Invest in NPS to get an additional deduction of ₹50,000 over and above Section 80C limit.",
-            "potential_saving": min(50000 * 0.2, estimated_tax * 0.15)  # Assuming 20% tax rate, max 15% of current tax
-        })
+    # Job-specific tax suggestions
+    job_category = None
+    for item in income_data:
+        if 'category' in item:
+            job_category = item['category']
+            break
     
-    # GST Registration for freelancers
-    if projected_annual_income > 2000000:
+    if job_category == 'Food Delivery':
         suggestions.append({
-            "type": "business_structure",
-            "title": "Consider GST Registration",
-            "description": "If your annual turnover is over ₹20 lakhs, GST registration allows you to claim input tax credits.",
-            "potential_saving": "Variable based on business expenses"
+            'title': 'Vehicle Depreciation',
+            'description': 'Claim depreciation on your delivery vehicle to reduce taxable income',
+            'potential_savings': round(annual_income * 0.015, 2)
+        })
+    elif job_category == 'Cab Driver':
+        suggestions.append({
+            'title': 'Fuel and Maintenance Deductions',
+            'description': 'Keep all receipts for fuel, maintenance, and repairs to claim as business expenses',
+            'potential_savings': round(annual_income * 0.03, 2)
+        })
+    elif job_category == 'House Cleaner':
+        suggestions.append({
+            'title': 'Equipment and Supply Deductions',
+            'description': 'Deduct the cost of cleaning supplies and equipment used for work',
+            'potential_savings': round(annual_income * 0.01, 2)
         })
     
     return jsonify({
         "tax_analysis": {
-            "projected_annual_income": round(projected_annual_income, 2),
-            "estimated_tax": round(estimated_tax, 2),
-            "effective_tax_rate": round((estimated_tax / projected_annual_income) * 100, 1) if projected_annual_income > 0 else 0,
-            "suggestions": suggestions
-        }
+            "annual_income_estimate": round(annual_income, 2),
+            "tax_bracket": tax_bracket,
+            "estimated_tax_liability": round(tax_liability, 2)
+        },
+        "tax_suggestions": suggestions
     })
 
 @app.route('/api/low-income-preparation', methods=['POST'])
 def low_income_preparation():
-    """Generate a plan for preparing for low-income periods"""
+    """Provide strategies for handling seasonal low-income periods"""
     data = request.json
     income_data = data.get('incomeData', [])
     expense_data = data.get('expenseData', [])
     
     if not income_data or not expense_data:
-        return jsonify({"error": "Insufficient data provided"}), 400
+        return jsonify({"error": "Both income and expense data are required"}), 400
     
-    # Convert dates to datetime for analysis
-    income_df = pd.DataFrame(income_data)
-    income_df['date'] = pd.to_datetime(income_df['date'])
-    income_df['month'] = income_df['date'].dt.strftime('%Y-%m')
+    # Calculate monthly income to identify low periods
+    monthly_income = {}
+    for item in income_data:
+        month = item['date'][:7]  # Get YYYY-MM
+        if month not in monthly_income:
+            monthly_income[month] = 0
+        monthly_income[month] += item['amount']
     
-    # Group by month
-    monthly_income = income_df.groupby('month')['amount'].sum().to_dict()
+    # Calculate average monthly income
+    avg_monthly_income = sum(monthly_income.values()) / len(monthly_income) if monthly_income else 0
     
-    # Identify low income months (below 70% of average)
-    months = list(monthly_income.keys())
-    amounts = list(monthly_income.values())
-    avg_monthly_income = sum(amounts) / len(amounts) if amounts else 0
-    low_income_threshold = avg_monthly_income * 0.7
+    # Identify low-income months (below 80% of average)
+    low_income_months = []
+    for month, income in monthly_income.items():
+        if income < (avg_monthly_income * 0.8):
+            low_income_months.append(month)
     
-    low_income_months = [month for month, amount in monthly_income.items() if amount < low_income_threshold]
+    # Calculate monthly expenses
+    monthly_expenses = {}
+    for item in expense_data:
+        month = item['date'][:7]  # Get YYYY-MM
+        if month not in monthly_expenses:
+            monthly_expenses[month] = 0
+        monthly_expenses[month] += item['amount']
     
-    # Calculate essential expenses
-    essential_categories = ["Housing", "Utilities", "Groceries", "Transportation", "Healthcare"]
+    # Calculate average monthly expenses
+    avg_monthly_expenses = sum(monthly_expenses.values()) / len(monthly_expenses) if monthly_expenses else 0
     
-    expense_df = pd.DataFrame(expense_data)
-    essential_expenses = 0
-    if not expense_df.empty and 'category' in expense_df.columns and 'amount' in expense_df.columns:
-        essential_expenses = expense_df[expense_df['category'].isin(essential_categories)]['amount'].sum() / 3  # Assuming 3 months data
+    # Calculate recommended emergency fund (3 months of expenses)
+    emergency_fund_target = avg_monthly_expenses * 3
     
-    # Monthly buffer needed
-    monthly_buffer = essential_expenses * 1.2  # 20% buffer on essentials
+    # Generate strategies
+    strategies = []
     
-    # Generate recommendations
-    low_month_preparation = {
-        "average_monthly_income": round(avg_monthly_income, 2),
-        "low_income_threshold": round(low_income_threshold, 2),
-        "identified_low_months": low_income_months,
-        "essential_monthly_expenses": round(essential_expenses, 2),
-        "recommended_monthly_buffer": round(monthly_buffer, 2),
-        "strategies": []
-    }
-    
-    # Add strategies based on the data
-    if avg_monthly_income > 0:
-        save_percent = min(30, max(10, round(20 * (1 + len(low_income_months) / 12))))
-        low_month_preparation["strategies"].append({
-            "title": "Build a Seasonal Buffer",
-            "description": f"Save {save_percent}% of income during high-earning months to cover low-income periods.",
-            "action_items": [
-                f"Set aside ₹{round(avg_monthly_income * save_percent / 100, 2)} monthly during normal/high income periods",
-                "Keep this buffer in a separate high-interest savings account",
-                "Use this buffer only during identified low-income months"
-            ]
-        })
-    
-    if len(low_income_months) > 0:
-        low_month_preparation["strategies"].append({
-            "title": "Diversify Income Sources",
-            "description": "Add additional income streams that are counter-cyclical to your current work pattern.",
-            "action_items": [
-                "Look for gigs that are in high demand during your typical low-income months",
-                "Develop skills that allow for remote work regardless of season",
-                "Create passive income streams through investments or digital products"
-            ]
-        })
-    
-    low_month_preparation["strategies"].append({
-        "title": "Expense Management Plan",
-        "description": "Create a reduced expense budget for low-income months.",
-        "action_items": [
-            "Identify non-essential expenses that can be temporarily reduced",
-            f"Plan for essential expenses of ₹{round(essential_expenses, 2)} monthly",
-            "Prepay major bills during high-income months when possible"
-        ]
+    # Basic strategies for everyone
+    strategies.append({
+        'title': 'Build an Emergency Fund',
+        'description': f'Save at least ₹{round(emergency_fund_target, 2)} (3 months of expenses) for low-income periods',
+        'impact': 'High',
+        'timeline': 'Medium-term'
     })
     
+    strategies.append({
+        'title': 'Identify Essential vs. Non-Essential Expenses',
+        'description': 'Categorize your expenses and have a plan to quickly cut non-essentials during low periods',
+        'impact': 'Medium',
+        'timeline': 'Short-term'
+    })
+    
+    # Job-specific strategies
+    job_category = None
+    for item in income_data:
+        if 'category' in item:
+            job_category = item['category']
+            break
+    
+    if job_category == 'Food Delivery':
+        strategies.append({
+            'title': 'Multi-platform Strategy',
+            'description': 'Sign up for multiple delivery platforms to diversify income sources',
+            'impact': 'Medium',
+            'timeline': 'Short-term'
+        })
+        strategies.append({
+            'title': 'Peak Hours Focus',
+            'description': 'Concentrate work during meal times when orders are highest',
+            'impact': 'Medium',
+            'timeline': 'Immediate'
+        })
+    elif job_category == 'Cab Driver':
+        strategies.append({
+            'title': 'Event Calendar Tracking',
+            'description': 'Track local events to anticipate high-demand periods',
+            'impact': 'Medium',
+            'timeline': 'Short-term'
+        })
+        strategies.append({
+            'title': 'Airport and Business District Focus',
+            'description': 'Focus on high-fare areas during business hours',
+            'impact': 'High',
+            'timeline': 'Immediate'
+        })
+    elif job_category == 'House Cleaner':
+        strategies.append({
+            'title': 'Service Expansion',
+            'description': 'Offer additional services like deep cleaning or organizing',
+            'impact': 'High',
+            'timeline': 'Medium-term'
+        })
+        strategies.append({
+            'title': 'Maintenance Contracts',
+            'description': 'Secure long-term contracts with businesses or regular clients',
+            'impact': 'High',
+            'timeline': 'Medium-term'
+        })
+    
+    # Pattern-based strategies
+    if low_income_months:
+        # Check if low-income months follow a seasonal pattern
+        low_income_month_numbers = [int(month.split('-')[1]) for month in low_income_months]
+        if set(low_income_month_numbers) & {5, 6, 7}:  # Summer months
+            strategies.append({
+                'title': 'Summer Income Planning',
+                'description': 'Your income tends to drop during summer months. Plan additional work or savings for May-July',
+                'impact': 'High',
+                'timeline': 'Annual'
+            })
+        elif set(low_income_month_numbers) & {1, 2}:  # Winter months
+            strategies.append({
+                'title': 'Winter Income Planning',
+                'description': 'Your income tends to drop during winter months. Plan additional work or savings for January-February',
+                'impact': 'High',
+                'timeline': 'Annual'
+            })
+    
     return jsonify({
-        "low_income_preparation": low_month_preparation
+        "income_analysis": {
+            "average_monthly_income": round(avg_monthly_income, 2),
+            "average_monthly_expenses": round(avg_monthly_expenses, 2),
+            "low_income_months": low_income_months,
+            "emergency_fund_target": round(emergency_fund_target, 2)
+        },
+        "strategies": strategies
     })
 
 if __name__ == '__main__':
-    # Ensure models directory exists
-    os.makedirs('models', exist_ok=True)
-    app.run(debug=True, port=5000) 
+    app.run(debug=True) 

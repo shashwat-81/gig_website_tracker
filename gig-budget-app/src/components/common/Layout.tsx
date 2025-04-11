@@ -20,7 +20,9 @@ import {
   MenuItem,
   useMediaQuery,
   useTheme,
-  Fab
+  Fab,
+  Badge,
+  Tooltip
 } from '@mui/material';
 import {
   Dashboard as DashboardIcon,
@@ -35,9 +37,11 @@ import {
   Close as CloseIcon,
   Menu as MenuIcon,
   Person as PersonIcon,
-  Psychology as AIIcon
+  Psychology as AIIcon,
+  Notifications
 } from '@mui/icons-material';
 import HamburgerMenu from './HamburgerMenu';
+import UserSwitcher from './UserSwitcher';
 
 const drawerWidth = 240;
 
@@ -116,21 +120,7 @@ const Layout: React.FC = () => {
       
       {/* User profile section */}
       <Box sx={{ p: 2, display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
-        <Avatar 
-          alt={user?.name || 'User'} 
-          src="/static/images/avatar/1.jpg" 
-          sx={{ width: 40, height: 40, bgcolor: 'primary.light' }}
-        >
-          {!user && <PersonIcon />}
-        </Avatar>
-        <Box>
-          <Typography variant="subtitle1" sx={{ fontWeight: 'bold', lineHeight: 1.2 }}>
-            {user?.name || 'Guest User'}
-          </Typography>
-          <Typography variant="caption" sx={{ opacity: 0.8 }}>
-            {user?.email || 'Sign in to access all features'}
-          </Typography>
-        </Box>
+        <UserSwitcher />
       </Box>
       
       <Divider sx={{ bgcolor: 'rgba(255,255,255,0.1)' }} />
@@ -160,7 +150,13 @@ const Layout: React.FC = () => {
                   opacity: location.pathname === item.path ? 1 : 0.7,
                 }}
               >
-                {item.icon}
+                {item.text === 'AI Insights' ? (
+                  <Badge color="secondary" variant="dot">
+                    {item.icon}
+                  </Badge>
+                ) : (
+                  item.icon
+                )}
               </ListItemIcon>
               <ListItemText 
                 primary={item.text} 
@@ -208,15 +204,16 @@ const Layout: React.FC = () => {
             <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
               GigBudget
             </Typography>
-            {user && (
-              <IconButton color="inherit" onClick={handleProfileMenuOpen} size="small">
-                <Avatar
-                  alt={user.name}
-                  src="/static/images/avatar/1.jpg"
-                  sx={{ width: 32, height: 32 }}
-                />
-              </IconButton>
-            )}
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <Tooltip title="Notifications">
+                <IconButton color="inherit">
+                  <Badge badgeContent={3} color="error">
+                    <Notifications />
+                  </Badge>
+                </IconButton>
+              </Tooltip>
+              <UserSwitcher />
+            </Box>
           </Toolbar>
         </AppBar>
       )}
