@@ -344,6 +344,346 @@ const AIInsightsDashboard: React.FC = () => {
             </Grid>
           </TabPanel>
           
+          {/* Expense Analysis */}
+          <TabPanel value={activeTab} index={1}>
+            <Grid container spacing={3}>
+              <Grid item xs={12} md={6}>
+                <Card>
+                  <CardContent>
+                    <Typography variant="h6" gutterBottom>
+                      Expense Breakdown by Category
+                    </Typography>
+                    {expenseAnalysis?.by_category && Object.keys(expenseAnalysis.by_category).length > 0 ? (
+                      <Box sx={{ height: 300 }}>
+                        <Pie data={getExpenseChartData()} options={{ maintainAspectRatio: false }} />
+                      </Box>
+                    ) : (
+                      <Typography>No expense data available for analysis</Typography>
+                    )}
+                  </CardContent>
+                </Card>
+              </Grid>
+              
+              <Grid item xs={12} md={6}>
+                <Card>
+                  <CardContent>
+                    <Typography variant="h6" gutterBottom>
+                      Expense Reduction Recommendations
+                    </Typography>
+                    {expenseAnalysis?.recommendations && expenseAnalysis.recommendations.length > 0 ? (
+                      <List>
+                        {expenseAnalysis.recommendations.map((recommendation: any, index: number) => (
+                          <ListItem key={index} divider={index < expenseAnalysis.recommendations.length - 1}>
+                            <ListItemIcon>
+                              <TrendingDown color="error" />
+                            </ListItemIcon>
+                            <ListItemText
+                              primary={recommendation.recommendation}
+                              secondary={recommendation.details}
+                              primaryTypographyProps={{ fontWeight: 'medium' }}
+                            />
+                          </ListItem>
+                        ))}
+                      </List>
+                    ) : (
+                      <Typography>No recommendations available</Typography>
+                    )}
+                  </CardContent>
+                </Card>
+              </Grid>
+            </Grid>
+          </TabPanel>
+          
+          {/* Savings Plan */}
+          <TabPanel value={activeTab} index={2}>
+            <Grid container spacing={3}>
+              <Grid item xs={12} md={6}>
+                <Card>
+                  <CardContent>
+                    <Typography variant="h6" gutterBottom>
+                      Savings Status
+                    </Typography>
+                    {savingsPlan ? (
+                      <>
+                        <Grid container spacing={2} sx={{ mb: 2 }}>
+                          <Grid item xs={6}>
+                            <Box sx={{ p: 2, bgcolor: 'background.paper', borderRadius: 1 }}>
+                              <Typography variant="overline" color="text.secondary">Current Savings</Typography>
+                              <Typography variant="h5" color="primary" fontWeight="bold">
+                                ₹{savingsPlan.current_savings.toLocaleString()}
+                              </Typography>
+                              <Typography variant="body2">
+                                ({savingsPlan.current_savings_percent}% of income)
+                              </Typography>
+                            </Box>
+                          </Grid>
+                          <Grid item xs={6}>
+                            <Box sx={{ p: 2, bgcolor: 'background.paper', borderRadius: 1 }}>
+                              <Typography variant="overline" color="text.secondary">Target Savings</Typography>
+                              <Typography variant="h5" color="success.main" fontWeight="bold">
+                                ₹{savingsPlan.target_amount.toLocaleString()}
+                              </Typography>
+                              <Typography variant="body2">
+                                ({savingsPlan.target_percent}% of income)
+                              </Typography>
+                            </Box>
+                          </Grid>
+                        </Grid>
+                        
+                        <Alert severity={savingsPlan.savings_gap > 0 ? "warning" : "success"} sx={{ mt: 2 }}>
+                          <AlertTitle>
+                            {savingsPlan.savings_gap > 0 
+                              ? "Savings Gap: ₹" + savingsPlan.savings_gap.toLocaleString() 
+                              : "You're meeting your savings target!"}
+                          </AlertTitle>
+                          {savingsPlan.savings_gap > 0 
+                            ? "Implement the recommended strategies to close this gap." 
+                            : "Keep up the good work with your savings habits."}
+                        </Alert>
+                        
+                        <Box sx={{ mt: 3 }}>
+                          <Typography variant="subtitle1" gutterBottom fontWeight="medium">
+                            Emergency Fund Goal: ₹{savingsPlan.emergency_fund_target.toLocaleString()}
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary" gutterBottom>
+                            Estimated time to achieve: {savingsPlan.months_to_emergency_fund} months
+                          </Typography>
+                        </Box>
+                      </>
+                    ) : (
+                      <Typography>No savings plan data available</Typography>
+                    )}
+                  </CardContent>
+                </Card>
+              </Grid>
+              
+              <Grid item xs={12} md={6}>
+                <Card>
+                  <CardContent>
+                    <Typography variant="h6" gutterBottom>
+                      Savings Strategies
+                    </Typography>
+                    {savingsPlan?.strategies && savingsPlan.strategies.length > 0 ? (
+                      <List>
+                        {savingsPlan.strategies.map((strategy: any, index: number) => (
+                          <ListItem key={index} divider={index < savingsPlan.strategies.length - 1}>
+                            <ListItemIcon>
+                              <Savings color="primary" />
+                            </ListItemIcon>
+                            <ListItemText
+                              primary={strategy.name}
+                              secondary={
+                                <>
+                                  {strategy.description}
+                                  <Box sx={{ mt: 1 }}>
+                                    <Chip 
+                                      size="small" 
+                                      label={`Impact: ${strategy.potential_impact}`} 
+                                      color="primary" 
+                                      variant="outlined"
+                                      sx={{ mr: 1 }}
+                                    />
+                                    <Chip 
+                                      size="small" 
+                                      label={`Difficulty: ${strategy.difficulty}`} 
+                                      color={strategy.difficulty === 'Easy' ? 'success' : (strategy.difficulty === 'Medium' ? 'warning' : 'error')}
+                                      variant="outlined"
+                                    />
+                                  </Box>
+                                </>
+                              }
+                              primaryTypographyProps={{ fontWeight: 'medium' }}
+                            />
+                          </ListItem>
+                        ))}
+                      </List>
+                    ) : (
+                      <Typography>No savings strategies available</Typography>
+                    )}
+                  </CardContent>
+                </Card>
+              </Grid>
+            </Grid>
+          </TabPanel>
+          
+          {/* Tax Optimization */}
+          <TabPanel value={activeTab} index={3}>
+            <Grid container spacing={3}>
+              <Grid item xs={12} md={6}>
+                <Card>
+                  <CardContent>
+                    <Typography variant="h6" gutterBottom>
+                      Tax Analysis
+                    </Typography>
+                    {taxSuggestions?.tax_analysis ? (
+                      <>
+                        <Box sx={{ mb: 3 }}>
+                          <Typography variant="subtitle1" gutterBottom>
+                            Annual Income Estimate
+                          </Typography>
+                          <Typography variant="h5" color="text.primary" fontWeight="bold">
+                            ₹{taxSuggestions.tax_analysis.annual_income_estimate.toLocaleString()}
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary">
+                            {taxSuggestions.tax_analysis.tax_bracket}
+                          </Typography>
+                        </Box>
+                        
+                        <Alert severity="info" sx={{ mb: 2 }}>
+                          <AlertTitle>Estimated Tax Liability</AlertTitle>
+                          ₹{taxSuggestions.tax_analysis.estimated_tax_liability.toLocaleString()}
+                        </Alert>
+                      </>
+                    ) : (
+                      <Typography>No tax analysis available</Typography>
+                    )}
+                  </CardContent>
+                </Card>
+              </Grid>
+              
+              <Grid item xs={12} md={6}>
+                <Card>
+                  <CardContent>
+                    <Typography variant="h6" gutterBottom>
+                      Tax Optimization Suggestions
+                    </Typography>
+                    {taxSuggestions?.tax_suggestions && taxSuggestions.tax_suggestions.length > 0 ? (
+                      <List>
+                        {taxSuggestions.tax_suggestions.map((suggestion: any, index: number) => (
+                          <ListItem key={index} divider={index < taxSuggestions.tax_suggestions.length - 1}>
+                            <ListItemIcon>
+                              <Calculate color="primary" />
+                            </ListItemIcon>
+                            <ListItemText
+                              primary={suggestion.title}
+                              secondary={
+                                <>
+                                  {suggestion.description}
+                                  <Typography variant="body2" color="success.main" sx={{ mt: 1 }}>
+                                    Potential savings: ₹{suggestion.potential_savings.toLocaleString()}
+                                  </Typography>
+                                </>
+                              }
+                              primaryTypographyProps={{ fontWeight: 'medium' }}
+                            />
+                          </ListItem>
+                        ))}
+                      </List>
+                    ) : (
+                      <Typography>No tax suggestions available</Typography>
+                    )}
+                  </CardContent>
+                </Card>
+              </Grid>
+            </Grid>
+          </TabPanel>
+          
+          {/* Seasonal Planning */}
+          <TabPanel value={activeTab} index={4}>
+            <Grid container spacing={3}>
+              <Grid item xs={12} md={6}>
+                <Card>
+                  <CardContent>
+                    <Typography variant="h6" gutterBottom>
+                      Seasonal Income Analysis
+                    </Typography>
+                    {lowIncomePlan?.income_analysis ? (
+                      <>
+                        <Box sx={{ mb: 3 }}>
+                          <Grid container spacing={2}>
+                            <Grid item xs={6}>
+                              <Box sx={{ p: 2, bgcolor: 'background.paper', borderRadius: 1 }}>
+                                <Typography variant="overline" color="text.secondary">Avg. Monthly Income</Typography>
+                                <Typography variant="h5" color="primary" fontWeight="bold">
+                                  ₹{lowIncomePlan.income_analysis.average_monthly_income.toLocaleString()}
+                                </Typography>
+                              </Box>
+                            </Grid>
+                            <Grid item xs={6}>
+                              <Box sx={{ p: 2, bgcolor: 'background.paper', borderRadius: 1 }}>
+                                <Typography variant="overline" color="text.secondary">Avg. Monthly Expenses</Typography>
+                                <Typography variant="h5" color="error.main" fontWeight="bold">
+                                  ₹{lowIncomePlan.income_analysis.average_monthly_expenses.toLocaleString()}
+                                </Typography>
+                              </Box>
+                            </Grid>
+                          </Grid>
+                        </Box>
+                        
+                        <Alert severity="warning" sx={{ mb: 3 }}>
+                          <AlertTitle>Low Income Months Identified</AlertTitle>
+                          {lowIncomePlan.income_analysis.low_income_months.length > 0 
+                            ? "Your income tends to be lower during: " + lowIncomePlan.income_analysis.low_income_months.join(", ")
+                            : "No consistent low-income periods identified yet. Keep tracking your income."
+                          }
+                        </Alert>
+                        
+                        <Typography variant="subtitle1" gutterBottom fontWeight="medium">
+                          Recommended Emergency Fund
+                        </Typography>
+                        <Typography variant="h6" color="success.main" fontWeight="bold">
+                          ₹{lowIncomePlan.income_analysis.emergency_fund_target.toLocaleString()}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          Target 3 months of expenses to weather low-income periods
+                        </Typography>
+                      </>
+                    ) : (
+                      <Typography>No seasonal income analysis available</Typography>
+                    )}
+                  </CardContent>
+                </Card>
+              </Grid>
+              
+              <Grid item xs={12} md={6}>
+                <Card>
+                  <CardContent>
+                    <Typography variant="h6" gutterBottom>
+                      Seasonal Planning Strategies
+                    </Typography>
+                    {lowIncomePlan?.strategies && lowIncomePlan.strategies.length > 0 ? (
+                      <List>
+                        {lowIncomePlan.strategies.map((strategy: any, index: number) => (
+                          <ListItem key={index} divider={index < lowIncomePlan.strategies.length - 1}>
+                            <ListItemIcon>
+                              <CalendarMonth color="primary" />
+                            </ListItemIcon>
+                            <ListItemText
+                              primary={strategy.title}
+                              secondary={
+                                <>
+                                  {strategy.description}
+                                  <Box sx={{ mt: 1 }}>
+                                    <Chip 
+                                      size="small" 
+                                      label={`Impact: ${strategy.impact}`} 
+                                      color={strategy.impact === 'High' ? 'success' : (strategy.impact === 'Medium' ? 'primary' : 'default')}
+                                      variant="outlined"
+                                      sx={{ mr: 1 }}
+                                    />
+                                    <Chip 
+                                      size="small" 
+                                      label={`Timeline: ${strategy.timeline}`} 
+                                      color="primary"
+                                      variant="outlined"
+                                    />
+                                  </Box>
+                                </>
+                              }
+                              primaryTypographyProps={{ fontWeight: 'medium' }}
+                            />
+                          </ListItem>
+                        ))}
+                      </List>
+                    ) : (
+                      <Typography>No seasonal planning strategies available</Typography>
+                    )}
+                  </CardContent>
+                </Card>
+              </Grid>
+            </Grid>
+          </TabPanel>
+          
           {/* Tab content for other tabs... */}
         </>
       )}

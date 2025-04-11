@@ -557,5 +557,25 @@ def low_income_preparation():
         "strategies": strategies
     })
 
+@app.route('/api/train-models', methods=['GET'])
+def train_models_endpoint():
+    """Endpoint to trigger model training"""
+    try:
+        # Import the train_models module
+        import train_models
+        
+        # Execute the training function
+        train_models.save_data_and_train_models()
+        
+        return jsonify({
+            "status": "success",
+            "message": "Models trained successfully"
+        })
+    except Exception as e:
+        return jsonify({
+            "status": "error",
+            "message": f"Error training models: {str(e)}"
+        }), 500
+
 if __name__ == '__main__':
     app.run(debug=True) 
