@@ -15,7 +15,14 @@ import {
   ListItemAvatar,
   ListItemText,
   CircularProgress,
-  Grid
+  Grid,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+  MenuItem,
+  IconButton
 } from '@mui/material';
 import { 
   EmojiEvents, 
@@ -26,8 +33,11 @@ import {
   AddCircle,
   TrendingUp,
   Done,
-  Lock
+  Lock,
+  Add as AddIcon,
+  Close as CloseIcon
 } from '@mui/icons-material';
+import { useChallenges } from '../../context/ChallengesContext';
 
 // Simulated user achievement data
 const userAchievements = [
@@ -117,7 +127,20 @@ const savingsChallenges = [
 interface SmartSavingsProps {}
 
 const SmartSavings: React.FC<SmartSavingsProps> = () => {
+  const { challenges, addChallenge, updateChallengeProgress, completeChallenge } = useChallenges();
   const [activeTab, setActiveTab] = useState<'achievements' | 'challenges'>('achievements');
+  const [openDialog, setOpenDialog] = useState(false);
+  const [newChallenge, setNewChallenge] = useState({
+    title: '',
+    description: '',
+    targetAmount: 0,
+    currentAmount: 0,
+    startDate: new Date(),
+    endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+    status: 'active' as const,
+    category: 'monthly' as const,
+    reward: ''
+  });
   
   // Calculate user level based on XP from completed achievements
   const userXp = userAchievements.reduce((total, achievement) => {
@@ -132,6 +155,30 @@ const SmartSavings: React.FC<SmartSavingsProps> = () => {
   const completedGoals = userAchievements.filter(a => a.completed).length;
   const totalGoals = userAchievements.length;
   const completionRate = Math.round((completedGoals / totalGoals) * 100);
+
+  const handleAddChallenge = () => {
+    addChallenge(newChallenge);
+    setOpenDialog(false);
+    setNewChallenge({
+      title: '',
+      description: '',
+      targetAmount: 0,
+      currentAmount: 0,
+      startDate: new Date(),
+      endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+      status: 'active' as const,
+      category: 'monthly' as const,
+      reward: ''
+    });
+  };
+
+  const formatDate = (date: Date) => {
+    return date.toLocaleDateString('en-IN', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    });
+  };
 
   return (
     <Card>
@@ -284,64 +331,69 @@ const SmartSavings: React.FC<SmartSavingsProps> = () => {
                 Join other gig workers in saving for specific goals with bonus rewards
               </Typography>
               
-              {savingsChallenges.map((challenge) => (
-                <Card key={challenge.id} variant="outlined" sx={{ mb: 2 }}>
-                  <CardContent>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
-                      <Typography variant="subtitle2" fontWeight="bold">
-                        {challenge.name}
-                      </Typography>
-                      <Chip 
-                        label={challenge.difficulty} 
-                        size="small" 
-                        color={
-                          challenge.difficulty === 'Easy' ? 'success' : 
-                          challenge.difficulty === 'Medium' ? 'primary' : 'error'
-                        }
-                      />
-                    </Box>
-                    <Typography variant="body2" gutterBottom>
-                      {challenge.description}
-                    </Typography>
-                    
-                    <Stack spacing={1} sx={{ mt: 2 }}>
-                      <Box>
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
-                          <Typography variant="caption" color="text.secondary">
-                            ₹{challenge.current.toLocaleString()} of ₹{challenge.target.toLocaleString()}
+              <Grid container spacing={3}>
+                {challenges.map((challenge) => (
+                  <Grid item xs={12} sm={6} md={4} key={challenge.id}>
+                    <Card>
+                      <CardContent>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                          <Typography variant="h6" component="h3">
+                            {challenge.title}
                           </Typography>
-                          <Typography variant="caption" color="text.secondary">
-                            {Math.round((challenge.current / challenge.target) * 100)}%
-                          </Typography>
+                          <Chip
+                            label={challenge.status}
+                            color={challenge.status === 'completed' ? 'success' : 'primary'}
+                            size="small"
+                          />
                         </Box>
-                        <LinearProgress 
-                          variant="determinate" 
-                          value={(challenge.current / challenge.target) * 100} 
-                          sx={{ height: 8, borderRadius: 4 }}
-                        />
-                      </Box>
-                      
-                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, justifyContent: 'space-between' }}>
-                        <Typography variant="caption" color="text.secondary">
-                          <strong>Due:</strong> {challenge.deadline}
+                        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                          {challenge.description}
                         </Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          <strong>{challenge.participants.toLocaleString()}</strong> participants
-                        </Typography>
-                        <Typography variant="caption" color="primary">
-                          <strong>Reward:</strong> {challenge.reward}
-                        </Typography>
-                      </Box>
-                    </Stack>
-                    
-                    <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
-                      <Button size="small" variant="contained">
-                        Join Challenge
-                      </Button>
-                    </Box>
-                  </CardContent>
-                </Card>
-              ))}
+                        <Box sx={{ mb: 2 }}>
+                          <Typography variant="body2">
+                            Target: ₹{challenge.targetAmount}
+                          </Typography>
+                          <Typography variant="body2">
+                            Current: ₹{challenge.currentAmount}
+                          </Typography>
+                          <LinearProgress
+                            variant="determinate"
+                            value={challenge.progress}
+                            sx={{ height: 10, borderRadius: 5, mt: 1 }}
+                          />
+                        </Box>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                          <Typography variant="caption" color="text.secondary">
+                            {formatDate(challenge.startDate)} - {formatDate(challenge.endDate)}
+                          </Typography>
+                          <Chip label={challenge.category} size="small" />
+                        </Box>
+                        {challenge.reward && (
+                          <Typography variant="body2" color="primary">
+                            Reward: {challenge.reward}
+                          </Typography>
+                        )}
+                        <Box sx={{ mt: 2, display: 'flex', gap: 1 }}>
+                          <Button
+                            variant="outlined"
+                            size="small"
+                            onClick={() => updateChallengeProgress(challenge.id, 500)}
+                          >
+                            Add ₹500
+                          </Button>
+                          <Button
+                            variant="outlined"
+                            size="small"
+                            onClick={() => completeChallenge(challenge.id)}
+                          >
+                            Complete
+                          </Button>
+                        </Box>
+                      </CardContent>
+                    </Card>
+                  </Grid>
+                ))}
+              </Grid>
             </Box>
             
             <Divider sx={{ my: 3 }} />
@@ -370,9 +422,82 @@ const SmartSavings: React.FC<SmartSavingsProps> = () => {
                 </Box>
               </CardContent>
             </Card>
+
+            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
+              <Button
+                variant="contained"
+                color="primary"
+                startIcon={<AddIcon />}
+                onClick={() => setOpenDialog(true)}
+              >
+                New Challenge
+              </Button>
+            </Box>
           </>
         )}
       </CardContent>
+
+      <Dialog open={openDialog} onClose={() => setOpenDialog(false)} maxWidth="sm" fullWidth>
+        <DialogTitle>
+          Create New Challenge
+          <IconButton
+            aria-label="close"
+            onClick={() => setOpenDialog(false)}
+            sx={{ position: 'absolute', right: 8, top: 8 }}
+          >
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 2 }}>
+            <TextField
+              label="Title"
+              value={newChallenge.title}
+              onChange={(e) => setNewChallenge({ ...newChallenge, title: e.target.value })}
+              fullWidth
+            />
+            <TextField
+              label="Description"
+              value={newChallenge.description}
+              onChange={(e) => setNewChallenge({ ...newChallenge, description: e.target.value })}
+              fullWidth
+              multiline
+              rows={2}
+            />
+            <TextField
+              label="Target Amount (₹)"
+              type="number"
+              value={newChallenge.targetAmount}
+              onChange={(e) => setNewChallenge({ ...newChallenge, targetAmount: Number(e.target.value) })}
+              fullWidth
+            />
+            <TextField
+              select
+              label="Category"
+              value={newChallenge.category}
+              onChange={(e) => setNewChallenge({ ...newChallenge, category: e.target.value as any })}
+              fullWidth
+            >
+              <MenuItem value="daily">Daily</MenuItem>
+              <MenuItem value="weekly">Weekly</MenuItem>
+              <MenuItem value="monthly">Monthly</MenuItem>
+              <MenuItem value="custom">Custom</MenuItem>
+            </TextField>
+            <TextField
+              label="Reward (Optional)"
+              value={newChallenge.reward}
+              onChange={(e) => setNewChallenge({ ...newChallenge, reward: e.target.value })}
+              fullWidth
+            />
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenDialog(false)}>Cancel</Button>
+          <Button onClick={handleAddChallenge} variant="contained" color="primary">
+            Create Challenge
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Card>
   );
 };

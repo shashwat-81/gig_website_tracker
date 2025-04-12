@@ -1,15 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import { CssBaseline } from '@mui/material';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, Outlet } from 'react-router-dom';
+import { CssBaseline, ThemeProvider } from '@mui/material';
 import { Provider } from 'react-redux';
-import { ThemeProvider } from '@mui/material/styles';
-import { ThemeProvider as CustomThemeProvider } from './context/ThemeContext';
+import { ThemeProvider as CustomThemeProvider, useTheme } from './context/ThemeContext';
 import { store } from './store';
-import theme from './theme';
+import { createAppTheme } from './theme';
 import { getCurrentUser } from './services/authService';
 import AuthRedirect from './components/auth/AuthRedirect';
 import Layout from './components/common/Layout';
 import { ExpenseProvider } from './context/ExpenseContext';
+import { ChallengesProvider } from './context/ChallengesContext';
+import { NotificationProvider } from './context/NotificationContext';
 
 // Import components
 import Dashboard from './components/dashboard/Dashboard';
@@ -38,68 +39,75 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const location = useLocation();
 
   if (!user) {
-    // Redirect to login page if user is not authenticated
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  return <>{children}</>;
+  return <Layout>{children}</Layout>;
 };
 
-const App: React.FC = () => {
+const AppContent: React.FC = () => {
+  const { darkMode } = useTheme();
   const [isAuthChecked, setIsAuthChecked] = useState(false);
+  const theme = React.useMemo(() => createAppTheme(darkMode ? 'dark' : 'light'), [darkMode]);
 
-  // Check if user is already authenticated on app load
   useEffect(() => {
     setIsAuthChecked(true);
   }, []);
 
   if (!isAuthChecked) {
-    return null; // Don't render anything until auth check is complete
+    return null;
   }
 
   return (
-    <Provider store={store}>
-      <ThemeProvider theme={theme}>
-        <CustomThemeProvider>
-          <CssBaseline />
-          <ExpenseProvider>
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <NotificationProvider>
+        <ExpenseProvider>
+          <ChallengesProvider>
             <Router>
-              <AuthRedirect>
-                <Routes>
-                  {/* Public route for login */}
-                  <Route path="/login" element={<LoginPage />} />
-                  
-                  {/* Protected routes */}
-                  <Route 
-                    path="/" 
-                    element={
-                      <ProtectedRoute>
-                        <Layout />
-                      </ProtectedRoute>
-                    }
-                  >
-                    <Route index element={<Dashboard />} />
-                    <Route path="/budget" element={<Budget />} />
-                    <Route path="/savings" element={<Savings />} />
-                    <Route path="/reports" element={<Reports />} />
-                    <Route path="/settings" element={<Settings />} />
-                    <Route path="/income" element={<IncomeTracker />} />
-                    <Route path="/expenses" element={<ExpenseTracker />} />
-                    <Route path="/tax" element={<TaxManager />} />
-                    <Route path="/achievements" element={<Achievements />} />
-                    <Route path="/challenges" element={<Challenges />} />
-                    <Route path="/ai-insights" element={<AIInsightsDashboard />} />
-                    <Route path="/interactive-insights" element={<InteractiveFinancialInsights />} />
-                  </Route>
-                  
-                  {/* Redirect all other routes to login */}
-                  <Route path="*" element={<Navigate to="/login" replace />} />
-                </Routes>
-              </AuthRedirect>
+              <Routes>
+                {/* Public route for login */}
+                <Route path="/login" element={<LoginPage />} />
+                
+                {/* Protected routes */}
+                <Route element={
+                  <ProtectedRoute>
+                    <AuthRedirect>
+                      <Outlet />
+                    </AuthRedirect>
+                  </ProtectedRoute>
+                }>
+                  <Route path="/" element={<Dashboard />} />
+                  <Route path="/income" element={<IncomeTracker />} />
+                  <Route path="/savings" element={<Savings />} />
+                  <Route path="/tax" element={<TaxManager />} />
+                  <Route path="/budget" element={<Budget />} />
+                  <Route path="/reports" element={<Reports />} />
+                  <Route path="/settings" element={<Settings />} />
+                  <Route path="/expenses" element={<ExpenseTracker />} />
+                  <Route path="/achievements" element={<Achievements />} />
+                  <Route path="/challenges" element={<Challenges />} />
+                  <Route path="/ai-insights" element={<AIInsightsDashboard />} />
+                  <Route path="/interactive-insights" element={<InteractiveFinancialInsights />} />
+                </Route>
+
+                {/* Redirect all other routes to login */}
+                <Route path="*" element={<Navigate to="/login" replace />} />
+              </Routes>
             </Router>
-          </ExpenseProvider>
-        </CustomThemeProvider>
-      </ThemeProvider>
+          </ChallengesProvider>
+        </ExpenseProvider>
+      </NotificationProvider>
+    </ThemeProvider>
+  );
+};
+
+const App: React.FC = () => {
+  return (
+    <Provider store={store}>
+      <CustomThemeProvider>
+        <AppContent />
+      </CustomThemeProvider>
     </Provider>
   );
 };

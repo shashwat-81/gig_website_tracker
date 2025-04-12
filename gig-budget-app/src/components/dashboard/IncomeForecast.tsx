@@ -1,20 +1,37 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Box, Card, CardContent, Typography, Stack, Button, LinearProgress } from '@mui/material';
 import { XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line } from 'recharts';
 import { TrendingUp, ShowChart, CalendarMonth } from '@mui/icons-material';
 
-// Simulated income forecast data - would be replaced with ML predictions in production
-const forecastData = [
-  { name: 'Jan', actual: 27500, predicted: 26000, confidence: 90 },
-  { name: 'Feb', actual: 26200, predicted: 25000, confidence: 88 },
-  { name: 'Mar', actual: 30500, predicted: 29000, confidence: 85 },
-  { name: 'Apr', actual: 24800, predicted: 25000, confidence: 82 },
-  { name: 'May', actual: 26800, predicted: 27000, confidence: 87 },
-  { name: 'Jun', actual: 32000, predicted: 30000, confidence: 84 },
-  { name: 'Jul', actual: null, predicted: 28500, confidence: 80 },
-  { name: 'Aug', actual: null, predicted: 31000, confidence: 75 },
-  { name: 'Sep', actual: null, predicted: 29000, confidence: 70 },
-];
+// Function to generate random income data
+const generateRandomIncomeData = () => {
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep'];
+  const baseIncome = 25000; // Base income amount
+  const volatility = 0.2; // 20% volatility
+
+  let currentActual = baseIncome;
+  let currentPredicted = baseIncome;
+
+  return months.map((month, index) => {
+    // Random walk for actual income (only for past months)
+    const actualChange = baseIncome * volatility * (Math.random() - 0.5);
+    currentActual = Math.max(15000, currentActual + actualChange);
+
+    // Random walk for predicted income with some correlation to actual
+    const predictedChange = baseIncome * volatility * (Math.random() - 0.5);
+    currentPredicted = Math.max(15000, currentPredicted + predictedChange);
+
+    // Confidence decreases as we look further into the future
+    const confidence = Math.max(70, 90 - index * 2);
+
+    return {
+      name: month,
+      actual: index < 6 ? Math.round(currentActual) : null, // Only show actual for past 6 months
+      predicted: Math.round(currentPredicted),
+      confidence
+    };
+  });
+};
 
 // Simulated seasonal insights for gig work in India
 const seasonalInsights = [
@@ -35,13 +52,14 @@ const seasonalInsights = [
   }
 ];
 
-interface IncomeForecastProps {
-  // In a real implementation, these would be passed from a parent component
-  // or fetched from an API that integrates with the ML model
-}
-
-const IncomeForecast: React.FC<IncomeForecastProps> = () => {
+const IncomeForecast: React.FC = () => {
   const [viewMode, setViewMode] = useState<'chart' | 'insights'>('chart');
+  const [forecastData, setForecastData] = useState(generateRandomIncomeData());
+  
+  // Generate new random data when component mounts
+  useEffect(() => {
+    setForecastData(generateRandomIncomeData());
+  }, []);
   
   // Calculate average monthly income based on actual data
   const actualIncomes = forecastData.filter(month => month.actual !== null).map(month => month.actual);
@@ -92,7 +110,7 @@ const IncomeForecast: React.FC<IncomeForecastProps> = () => {
                 >
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="name" />
-                  <YAxis />
+                  <YAxis domain={[15000, 35000]} />
                   <Tooltip formatter={(value: number) => [`₹${value.toLocaleString()}`, 'Income']} />
                   <Legend />
                   <Line 
@@ -118,7 +136,7 @@ const IncomeForecast: React.FC<IncomeForecastProps> = () => {
             <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
               Prediction Confidence Levels
             </Typography>
-            <Stack spacing={1} sx={{ mb: 3 }}>
+            <Stack spacing={1}>
               {forecastData.filter(item => item.actual === null).map((item) => (
                 <Box key={item.name}>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
@@ -143,21 +161,6 @@ const IncomeForecast: React.FC<IncomeForecastProps> = () => {
                 </Box>
               ))}
             </Stack>
-            
-            <Box sx={{ bgcolor: 'info.light', p: 2, borderRadius: 2 }}>
-              <Typography variant="subtitle2" fontWeight="bold" color="info.dark" gutterBottom>
-                ML-Powered Recommendations:
-              </Typography>
-              <Typography variant="body2" color="info.dark">
-                • Prepare for potentially lower income in {belowAverageMonths.join(', ')}
-              </Typography>
-              <Typography variant="body2" color="info.dark">
-                • Aim to build a buffer fund of ₹{recommendedBuffer.toLocaleString()} to cover lean periods
-              </Typography>
-              <Typography variant="body2" color="info.dark">
-                • Your income pattern suggests high seasonal variability (27% above average)
-              </Typography>
-            </Box>
           </>
         ) : (
           <>

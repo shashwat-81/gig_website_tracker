@@ -38,7 +38,7 @@ const LoginPage: React.FC = () => {
     setLoading(true);
     
     try {
-      await login(email, password);
+      await login({ email, password });
       navigate('/');
     } catch (err) {
       setError('Invalid credentials. Please try again.');
@@ -79,13 +79,10 @@ const LoginPage: React.FC = () => {
   };
   
   // Helper function to login as a demo user
-  const loginAsDemoUser = async (email: string) => {
-    setEmail(email);
-    setPassword('password'); // Use a dummy password for demo accounts
-    
+  const handleDemoLogin = async (email: string) => {
     try {
       setLoading(true);
-      await login(email, 'password');
+      await login({ email, password: 'password' });
       navigate('/');
     } catch (err) {
       setError('Failed to login with demo account. Please try again.');
@@ -239,7 +236,7 @@ const LoginPage: React.FC = () => {
                       <Button
                         variant="contained"
                         fullWidth
-                        onClick={() => loginAsDemoUser(user.email)}
+                        onClick={() => handleDemoLogin(user.email)}
                         color={getCategoryColor(user.category)}
                         startIcon={getCategoryIcon(user.category)}
                         sx={{ mt: 1 }}

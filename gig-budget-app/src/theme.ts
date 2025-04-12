@@ -1,12 +1,12 @@
-import { createTheme } from '@mui/material/styles';
+import { createTheme, ThemeOptions } from '@mui/material/styles';
 
-const theme = createTheme({
+const getThemeOptions = (mode: 'light' | 'dark'): ThemeOptions => ({
   unstable_sxConfig: {
     // This enables proper typing for the Grid component
     // It's a workaround for the known MUI issue with Grid typing
   },
   palette: {
-    mode: 'light',
+    mode,
     primary: {
       main: '#2e7d32', // Green color representing money/growth
       light: '#60ad5e',
@@ -20,8 +20,12 @@ const theme = createTheme({
       contrastText: '#fff',
     },
     background: {
-      default: '#f5f5f5',
-      paper: '#ffffff',
+      default: mode === 'dark' ? '#121212' : '#f5f5f5',
+      paper: mode === 'dark' ? '#1e1e1e' : '#ffffff',
+    },
+    text: {
+      primary: mode === 'dark' ? '#ffffff' : '#000000',
+      secondary: mode === 'dark' ? '#b0b0b0' : '#666666',
     },
     error: {
       main: '#d32f2f',
@@ -72,7 +76,9 @@ const theme = createTheme({
     MuiCard: {
       styleOverrides: {
         root: {
-          boxShadow: '0px 2px 10px rgba(0, 0, 0, 0.05)',
+          boxShadow: mode === 'dark' 
+            ? '0px 2px 10px rgba(0, 0, 0, 0.3)' 
+            : '0px 2px 10px rgba(0, 0, 0, 0.05)',
         },
       },
     },
@@ -84,4 +90,6 @@ const theme = createTheme({
   },
 });
 
-export default theme; 
+export const createAppTheme = (mode: 'light' | 'dark') => createTheme(getThemeOptions(mode));
+
+export default createAppTheme('light'); 

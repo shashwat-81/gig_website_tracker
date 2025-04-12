@@ -46,36 +46,24 @@ const USERS: User[] = [
   }
 ];
 
-// Simulate authentication
-export const login = (email: string, password: string): Promise<User> => {
-  return new Promise((resolve, reject) => {
-    // For demo, find user by email, ignore password
-    const user = USERS.find(u => u.email.toLowerCase() === email.toLowerCase());
-    
-    setTimeout(() => {
-      if (user) {
-        // Store in localStorage
-        localStorage.setItem('currentUser', JSON.stringify(user));
-        resolve(user);
-      } else {
-        reject(new Error('Invalid credentials'));
-      }
-    }, 800); // Simulate API delay
-  });
+// Mock authentication service
+let currentUser: any = null;
+
+export const getCurrentUser = () => {
+  return currentUser || localStorage.getItem('user');
 };
 
-// Get the current user from localStorage
-export const getCurrentUser = (): User | null => {
-  const userJson = localStorage.getItem('currentUser');
-  return userJson ? JSON.parse(userJson) : null;
+export const login = (credentials: { email: string; password: string }) => {
+  // Mock login - in a real app, this would make an API call
+  currentUser = { id: 1, email: credentials.email };
+  localStorage.setItem('user', JSON.stringify(currentUser));
+  return Promise.resolve(currentUser);
 };
 
-// Logout functionality
-export const logout = (): Promise<void> => {
-  return new Promise((resolve) => {
-    localStorage.removeItem('currentUser');
-    resolve();
-  });
+export const logout = () => {
+  currentUser = null;
+  localStorage.removeItem('user');
+  return Promise.resolve();
 };
 
 // Switch to a different user (for demo purposes)
