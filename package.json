@@ -1,5 +1,8 @@
-{
+{"scripts": 
+  "build": "react-scripts build"
+
+
   "dependencies": {
     "recharts": "^2.15.2"
   }
-}
+
